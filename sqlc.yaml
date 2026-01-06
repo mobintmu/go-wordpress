@@ -1,0 +1,11 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    schema: "internal/storage/sql/sqlc/schema"
+    queries: "internal/storage/sql/sqlc/queries"
+    database:
+      uri: "postgresql://user:pass@localhost:5432/database?sslmode=disable"
+    gen:
+      go:
+        out: "internal/storage/sql/sqlc"
+        package: "sqlc"
