@@ -13,13 +13,9 @@ The **go-wordpress** project is a dynamic, open-source **Golang** 💻 repositor
 * **Communication:** Includes a **gRPC server** ⚡ to demonstrate high-performance microservice communication.
 * **Core Module:** Features a fully functional **Product Management Module** 📦 with complete **CRUD** (Create, Read, Update, Delete) functionality.
 
----
+## Colly
 
-### 📚 Documentation & Learning
-
-This repository is an **evolving guide** to advanced Go development. All architectural decisions and feature implementations are thoroughly documented through a series of dedicated articles on Medium. By following this project, you can learn essential **advanced Go idioms**, master the use of **DTOs** (Data Transfer Objects) 💼, and implement professional-grade backend systems 💡.
-
-[medium.com/list/gosimple-b350f5c3bdb6](https://mobinshaterian.medium.com/list/gosimple-b350f5c3bdb6)
+https://go-colly.org/
 
 ## Run project
 
