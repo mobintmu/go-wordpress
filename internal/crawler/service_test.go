@@ -3,17 +3,24 @@ package crawler_test
 import (
 	"go-wordpress/internal/crawler"
 	"testing"
+
+	"go.uber.org/zap"
 )
 
 func TestListProductsIntegration(t *testing.T) {
-	svc := crawler.New()
-
-	err := svc.ListProducts()
+	logger, err := zap.NewDevelopment()
 	if err != nil {
-		t.Fatalf("ListProducts failed: %v", err)
+		t.Fatalf("failed to create logger: %v", err)
+	}
+	defer logger.Sync()
+
+	cr := crawler.New(logger)
+
+	if err := cr.Run(); err != nil {
+		t.Fatalf("failed to run service: %v", err)
 	}
 
-	products := svc.CleanedProducts() // expose getter or access field directly if exported
+	products := cr.CleanedProducts() // expose getter or access field directly if exported
 
 	if len(products) == 0 {
 		t.Fatalf("expected at least 1 product, got 0")
