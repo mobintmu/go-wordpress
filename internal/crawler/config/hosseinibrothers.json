@@ -1,0 +1,49 @@
+{
+  "domain": "hosseinibrothers.ir",
+  "start_urls": [
+    "https://hosseinibrothers.ir/%D8%AE%D8%B4%DA%A9%D8%A8%D8%A7%D8%B1/"
+  ],
+  "categories": [
+    {
+      "name": "خشکبار",
+      "link": "https://hosseinibrothers.ir/%D8%AE%D8%B4%DA%A9%D8%A8%D8%A7%D8%B1/"
+    },
+    {
+      "name": "زعفران",
+      "link": "https://hosseinibrothers.ir/%D8%B2%D8%B9%D9%81%D8%B1%D8%A7%D9%86/"
+    },
+    {
+      "name": "تنقلات",
+      "link": "https://hosseinibrothers.ir/%D8%AA%D9%86%D9%82%D9%84%D8%A7%D8%AA/"
+    }
+  ],
+  "product_list": {
+    "item": "div.js-product-miniature",
+    "fields": {
+      "title": {
+        "selector": "a.stsb_mini_product_name",
+        "attr": ""
+      },
+      "price": {
+        "selector": "div.stsb_pm_price",
+        "attr": ""
+      },
+      "link": {
+        "selector": "a.stsb_mini_product_name",
+        "attr": "href"
+      },
+      "image": {
+        "selector": "img.stsb_pm_image",
+        "attr": "src"
+      }
+    }
+  },
+  "pagination": {
+    "next": "a[rel='next']"
+  },
+  "product_detail": {
+    "description": {
+      "selector": "#description, div.elementor-widget-theme-post-content"
+    }
+  }
+}

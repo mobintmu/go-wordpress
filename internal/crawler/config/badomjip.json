@@ -1,0 +1,41 @@
+{
+  "domain": "badomjip.com",
+  "start_urls": [
+    "https://badomjip.com/product-category/%d9%be%da%a9%db%8c%d8%ac%d9%87%d8%a7/"
+  ],
+  "categories": [
+    {
+      "name": "پکیجها",
+      "link": "https://badomjip.com/product-category/%d9%be%da%a9%db%8c%d8%ac%d9%87%d8%a7/"
+    }
+  ],
+  "product_list": {
+    "item": "div.product-grid-item",
+    "fields": {
+      "title": {
+        "selector": "h3.wd-entities-title a",
+        "attr": ""
+      },
+      "price": {
+        "selector": "span.price",
+        "attr": ""
+      },
+      "link": {
+        "selector": "a.product-image-link",
+        "attr": "href"
+      },
+      "image": {
+        "selector": "a.product-image-link img",
+        "attr": "src"
+      }
+    }
+  },
+  "pagination": {
+    "next": "a.next.page-numbers"
+  },
+  "product_detail": {
+    "description": {
+      "selector": "div.woocommerce-product-details__short-description, div.woocommerce-Tabs-panel--description"
+    }
+  }
+}
