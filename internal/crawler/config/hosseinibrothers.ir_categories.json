@@ -1,0 +1,441 @@
+{
+  "categories": [
+    {
+      "name": "پک اقتصادی خانوار",
+      "link": "https://hosseinibrothers.ir/%D9%BE%DA%A9-%D8%A7%D9%82%D8%AA%D8%B5%D8%A7%D8%AF%DB%8C-%D8%AE%D8%A7%D9%86%D9%88%D8%A7%D8%B1/"
+    },
+    {
+      "name": "آجیل",
+      "link": "https://hosseinibrothers.ir/آجیل/"
+    },
+    {
+      "name": "پسته",
+      "link": "https://hosseinibrothers.ir/آجیل/پسته/"
+    },
+    {
+      "name": "پسته اکبری",
+      "link": "https://hosseinibrothers.ir/آجیل/پسته/پسته-اکبری/"
+    },
+    {
+      "name": "پسته احمد آقایی",
+      "link": "https://hosseinibrothers.ir/آجیل/پسته/پسته-احمد-آقایی/"
+    },
+    {
+      "name": "مغز پسته",
+      "link": "https://hosseinibrothers.ir/آجیل/پسته/مغز-پسته/"
+    },
+    {
+      "name": "سایر پسته ها",
+      "link": "https://hosseinibrothers.ir/آجیل/پسته/سایر-پسته-ها/"
+    },
+    {
+      "name": "بادام",
+      "link": "https://hosseinibrothers.ir/آجیل/بادام/"
+    },
+    {
+      "name": "بادام درختی",
+      "link": "https://hosseinibrothers.ir/آجیل/بادام/بادام-درختی/"
+    },
+    {
+      "name": "بادام هندی",
+      "link": "https://hosseinibrothers.ir/آجیل/بادام/بادام-هندی/"
+    },
+    {
+      "name": "بادام زمینی",
+      "link": "https://hosseinibrothers.ir/آجیل/بادام/بادام-زمینی/"
+    },
+    {
+      "name": "فندق",
+      "link": "https://hosseinibrothers.ir/آجیل/فندق/"
+    },
+    {
+      "name": "فندق با پوست",
+      "link": "https://hosseinibrothers.ir/آجیل/فندق/فندق-با-پوست/"
+    },
+    {
+      "name": "مغز فندق",
+      "link": "https://hosseinibrothers.ir/آجیل/فندق/مغز-فندق/"
+    },
+    {
+      "name": "گردو",
+      "link": "https://hosseinibrothers.ir/آجیل/گردو/"
+    },
+    {
+      "name": "مغز گردو",
+      "link": "https://hosseinibrothers.ir/آجیل/گردو/مغز-گردو/"
+    },
+    {
+      "name": "گردو با پوست",
+      "link": "https://hosseinibrothers.ir/آجیل/گردو/گردو-با-پوست/"
+    },
+    {
+      "name": "تخمه ها",
+      "link": "https://hosseinibrothers.ir/آجیل/تخمه/"
+    },
+    {
+      "name": "تخمه آفتابگردان",
+      "link": "https://hosseinibrothers.ir/آجیل/تخمه/تخمه-آفتابگردان/"
+    },
+    {
+      "name": "تخمه هندوانه",
+      "link": "https://hosseinibrothers.ir/آجیل/تخمه/تخمه-هندوانه/"
+    },
+    {
+      "name": "تخمه جابانی",
+      "link": "https://hosseinibrothers.ir/آجیل/تخمه/تخمه-جابانی/"
+    },
+    {
+      "name": "تخمه کدو",
+      "link": "https://hosseinibrothers.ir/آجیل/تخمه/تخمه-کدو/"
+    },
+    {
+      "name": "مغز تخمه",
+      "link": "https://hosseinibrothers.ir/آجیل/تخمه/مغز-تخمه/"
+    },
+    {
+      "name": "چلغوزه",
+      "link": "https://hosseinibrothers.ir/آجیل/تخمه/چلغوزه/"
+    },
+    {
+      "name": "نخود ها",
+      "link": "https://hosseinibrothers.ir/آجیل/نخود/"
+    },
+    {
+      "name": "نخود دو آتشه",
+      "link": "https://hosseinibrothers.ir/آجیل/نخود/نخود-دو-آتشه/"
+    },
+    {
+      "name": "نخود گل",
+      "link": "https://hosseinibrothers.ir/آجیل/نخود/نخود-گل/"
+    },
+    {
+      "name": "نخود معمولی",
+      "link": "https://hosseinibrothers.ir/آجیل/نخود/نخود-معمولی/"
+    },
+    {
+      "name": "نخودکشمش",
+      "link": "https://hosseinibrothers.ir/آجیل/نخود/نخودکشمش/"
+    },
+    {
+      "name": "آجیل های مخلوط",
+      "link": "https://hosseinibrothers.ir/آجیل/آجیل-های-مخلوط/"
+    },
+    {
+      "name": "آجیل های مغز",
+      "link": "https://hosseinibrothers.ir/آجیل/آجیل-های-مخلوط/آجیل-های-مغز/"
+    },
+    {
+      "name": "آجیل های تخمه دار",
+      "link": "https://hosseinibrothers.ir/آجیل/آجیل-های-مخلوط/آجیل-های-تخمه-دار/"
+    },
+    {
+      "name": "آجیل شب یلدا",
+      "link": "https://hosseinibrothers.ir/آجیل/آجیل-های-مخلوط/آجیل-شب-یلدا/"
+    },
+    {
+      "name": "آجیل شب عید",
+      "link": "https://hosseinibrothers.ir/آجیل/آجیل-شب-عید/"
+    },
+    {
+      "name": "خشکبار",
+      "link": "https://hosseinibrothers.ir/خشکبار/"
+    },
+    {
+      "name": "برگه ها",
+      "link": "https://hosseinibrothers.ir/خشکبار/برگه-ها/"
+    },
+    {
+      "name": "آلوها",
+      "link": "https://hosseinibrothers.ir/خشکبار/آلوها/"
+    },
+    {
+      "name": "انجیر خشک",
+      "link": "https://hosseinibrothers.ir/خشکبار/انجیر/"
+    },
+    {
+      "name": "کشمش",
+      "link": "https://hosseinibrothers.ir/خشکبار/کشمش/"
+    },
+    {
+      "name": "خرما",
+      "link": "https://hosseinibrothers.ir/خشکبار/خرما/"
+    },
+    {
+      "name": "توت",
+      "link": "https://hosseinibrothers.ir/خشکبار/توت/"
+    },
+    {
+      "name": "زرشک",
+      "link": "https://hosseinibrothers.ir/خشکبار/زرشک/"
+    },
+    {
+      "name": "میوه خشک",
+      "link": "https://hosseinibrothers.ir/خشکبار/میوه-خشک/"
+    },
+    {
+      "name": "چیپس میوه",
+      "link": "https://hosseinibrothers.ir/خشکبار/چیپس-میوه/"
+    },
+    {
+      "name": "عناب",
+      "link": "https://hosseinibrothers.ir/خشکبار/عناب/"
+    },
+    {
+      "name": "زعفران",
+      "link": "https://hosseinibrothers.ir/زعفران/"
+    },
+    {
+      "name": "زعفران یک گرمی",
+      "link": "https://hosseinibrothers.ir/زعفران/زعفران-یک-گرمی/"
+    },
+    {
+      "name": "زعفران نیم مثقالی",
+      "link": "https://hosseinibrothers.ir/زعفران/زعفران-نیم-مثقالی/"
+    },
+    {
+      "name": "زعفران یک مثقالی",
+      "link": "https://hosseinibrothers.ir/زعفران/زعفران-یک-مثقالی/"
+    },
+    {
+      "name": "زعفران دو مثقالی",
+      "link": "https://hosseinibrothers.ir/زعفران/زعفران-دو-مثقالی/"
+    },
+    {
+      "name": "سایر",
+      "link": "https://hosseinibrothers.ir/زعفران/سایر-زعفران-ها/"
+    },
+    {
+      "name": "جعبه کادویی زعفران",
+      "link": "https://hosseinibrothers.ir/زعفران/جعبه-کادویی-زعفران/"
+    },
+    {
+      "name": "تنقلات",
+      "link": "https://hosseinibrothers.ir/تنقلات/"
+    },
+    {
+      "name": "پشمک",
+      "link": "https://hosseinibrothers.ir/تنقلات/پشمک/"
+    },
+    {
+      "name": "لواشک و قرقروت",
+      "link": "https://hosseinibrothers.ir/تنقلات/لواشک-و-قرقروت/"
+    },
+    {
+      "name": "آدامس طبیعی",
+      "link": "https://hosseinibrothers.ir/تنقلات/آدامس-طبیعی/"
+    },
+    {
+      "name": "ذرت",
+      "link": "https://hosseinibrothers.ir/تنقلات/ذرت/"
+    },
+    {
+      "name": "ویت کورن",
+      "link": "https://hosseinibrothers.ir/تنقلات/ویت-کورن/"
+    },
+    {
+      "name": "نبات",
+      "link": "https://hosseinibrothers.ir/تنقلات/نبات/"
+    },
+    {
+      "name": "آبنبات",
+      "link": "https://hosseinibrothers.ir/تنقلات/آبنبات/"
+    },
+    {
+      "name": "گز",
+      "link": "https://hosseinibrothers.ir/تنقلات/گز/"
+    },
+    {
+      "name": "سوهان",
+      "link": "https://hosseinibrothers.ir/تنقلات/سوهان/"
+    },
+    {
+      "name": "بیسکویت",
+      "link": "https://hosseinibrothers.ir/تنقلات/بیسکویت/"
+    },
+    {
+      "name": "بسته های کادویی",
+      "link": "https://hosseinibrothers.ir/بسته-های-کادویی/"
+    },
+    {
+      "name": "بسته های کادویی آجیل",
+      "link": "https://hosseinibrothers.ir/بسته-های-کادویی/بسته-های-کادویی-آجیل/"
+    },
+    {
+      "name": "آجیل های سبدی",
+      "link": "https://hosseinibrothers.ir/بسته-های-کادویی/بسته-های-کادویی-آجیل/آجیل-های-سبدی/"
+    },
+    {
+      "name": "دیس های آجیل",
+      "link": "https://hosseinibrothers.ir/بسته-های-کادویی/بسته-های-کادویی-آجیل/دیس-های-آجیل/"
+    },
+    {
+      "name": "آجیل های جعبه ای",
+      "link": "https://hosseinibrothers.ir/بسته-های-کادویی/بسته-های-کادویی-آجیل/آجیل-های-جعبه-ای/"
+    },
+    {
+      "name": "سوغات مشهد",
+      "link": "https://hosseinibrothers.ir/بسته-های-کادویی/سوغات-مشهد/"
+    },
+    {
+      "name": "هل کادویی",
+      "link": "https://hosseinibrothers.ir/بسته-های-کادویی/سوغات-مشهد/هل-کادویی/"
+    },
+    {
+      "name": "پک سوغات",
+      "link": "https://hosseinibrothers.ir/بسته-های-کادویی/سوغات-مشهد/پک-سوغات/"
+    },
+    {
+      "name": "زرشک کادویی",
+      "link": "https://hosseinibrothers.ir/بسته-های-کادویی/سوغات-مشهد/زرشک-کادویی/"
+    },
+    {
+      "name": "نخود کشمش کادویی",
+      "link": "https://hosseinibrothers.ir/بسته-های-کادویی/سوغات-مشهد/نخود-کشمش-کادویی/"
+    },
+    {
+      "name": "بسته های لوکس کادویی",
+      "link": "https://hosseinibrothers.ir/بسته-های-کادویی/بسته-های-لوکس-کادویی/"
+    },
+    {
+      "name": "پک های ویژه",
+      "link": "https://hosseinibrothers.ir/بسته-های-کادویی/پک-های-ویژه/"
+    },
+    {
+      "name": "پک های سازمانی و نوروز",
+      "link": "https://hosseinibrothers.ir/بسته-های-کادویی/پک-های-ویژه/پک-های-سازمانی/"
+    },
+    {
+      "name": "پک های شب یلدا",
+      "link": "https://hosseinibrothers.ir/بسته-های-کادویی/پک-های-ویژه/پک-های-شب-یلدا/"
+    },
+    {
+      "name": "کالای اساسی و خواربار",
+      "link": "https://hosseinibrothers.ir/کالای-اساسی-و-خواربار/"
+    },
+    {
+      "name": "عسل و صبحانه",
+      "link": "https://hosseinibrothers.ir/کالای-اساسی-و-خواربار/عسل-و-صبحانه/"
+    },
+    {
+      "name": "کره ها",
+      "link": "https://hosseinibrothers.ir/کالای-اساسی-و-خواربار/عسل-و-صبحانه/کره-ها/"
+    },
+    {
+      "name": "کره بادام زمینی",
+      "link": "https://hosseinibrothers.ir/کالای-اساسی-و-خواربار/عسل-و-صبحانه/کره-بادام-زمینی/"
+    },
+    {
+      "name": "چای قهوه و دمنوش",
+      "link": "https://hosseinibrothers.ir/کالای-اساسی-و-خواربار/چای-قهوه-و-دمنوش/"
+    },
+    {
+      "name": "چای",
+      "link": "https://hosseinibrothers.ir/کالای-اساسی-و-خواربار/چای-قهوه-و-دمنوش/چای/"
+    },
+    {
+      "name": "پودر ها",
+      "link": "https://hosseinibrothers.ir/کالای-اساسی-و-خواربار/چای-قهوه-و-دمنوش/پودر-ها/"
+    },
+    {
+      "name": "دمنوش",
+      "link": "https://hosseinibrothers.ir/کالای-اساسی-و-خواربار/چای-قهوه-و-دمنوش/دمنوش/"
+    },
+    {
+      "name": "دسر و لوازم قنادی",
+      "link": "https://hosseinibrothers.ir/کالای-اساسی-و-خواربار/دسر-و-لوازم-قنادی/"
+    },
+    {
+      "name": "محصولات قنادی",
+      "link": "https://hosseinibrothers.ir/کالای-اساسی-و-خواربار/دسر-و-لوازم-قنادی/محصولات-قنادی/"
+    },
+    {
+      "name": "دسر و شربت",
+      "link": "https://hosseinibrothers.ir/کالای-اساسی-و-خواربار/دسر-و-لوازم-قنادی/دسر-و-شربت/"
+    },
+    {
+      "name": "آشپزی",
+      "link": "https://hosseinibrothers.ir/کالای-اساسی-و-خواربار/آشپزی/"
+    },
+    {
+      "name": "سبزی",
+      "link": "https://hosseinibrothers.ir/کالای-اساسی-و-خواربار/آشپزی/سبزی/"
+    },
+    {
+      "name": "ادویه و چاشنی",
+      "link": "https://hosseinibrothers.ir/کالای-اساسی-و-خواربار/آشپزی/ادویه/"
+    },
+    {
+      "name": "برنج",
+      "link": "https://hosseinibrothers.ir/کالای-اساسی-و-خواربار/آشپزی/dsd/"
+    },
+    {
+      "name": "سایر محصولات آشپزی",
+      "link": "https://hosseinibrothers.ir/کالای-اساسی-و-خواربار/آشپزی/سایر-محصولات-آشپزی/"
+    },
+    {
+      "name": "عرقیات گیاهی",
+      "link": "https://hosseinibrothers.ir/کالای-اساسی-و-خواربار/عرقیات-گیاهی/"
+    },
+    {
+      "name": "شکلات",
+      "link": "https://hosseinibrothers.ir/شکلات/"
+    },
+    {
+      "name": "شکلات کاکائویی",
+      "link": "https://hosseinibrothers.ir/شکلات/شکلات-کاکائویی/"
+    },
+    {
+      "name": "شکلات تلخ",
+      "link": "https://hosseinibrothers.ir/شکلات/شکلات-تلخ/"
+    },
+    {
+      "name": "شکلات فانتزی",
+      "link": "https://hosseinibrothers.ir/شکلات/شکلات-فانتزی/"
+    },
+    {
+      "name": "شکلات تافی و آبنباتی",
+      "link": "https://hosseinibrothers.ir/شکلات/شکلات-تافی-و-آبنباتی/"
+    },
+    {
+      "name": "شکلات پشمکی",
+      "link": "https://hosseinibrothers.ir/شکلات/شکلات-پشمکی/"
+    },
+    {
+      "name": "شکلات فله",
+      "link": "https://hosseinibrothers.ir/شکلات/شکلات-فله/"
+    },
+    {
+      "name": "شکلات کادویی",
+      "link": "https://hosseinibrothers.ir/شکلات/شکلات-کادویی/"
+    },
+    {
+      "name": "کنجد پرورده",
+      "link": "https://hosseinibrothers.ir/شکلات/کنجد-پرورده/"
+    },
+    {
+      "name": "شکلات صبحانه",
+      "link": "https://hosseinibrothers.ir/شکلات/شکلات-صبحانه/"
+    },
+    {
+      "name": "محصولات ویژه",
+      "link": "https://hosseinibrothers.ir/محصولات-ویژه/"
+    },
+    {
+      "name": "کره های آجیلی",
+      "link": "https://hosseinibrothers.ir/محصولات-ویژه/کره-های-آجیلی/"
+    },
+    {
+      "name": "شیرینی و شکلات",
+      "link": "https://hosseinibrothers.ir/محصولات-ویژه/شیرینی-و-شکلات/"
+    },
+    {
+      "name": "محصولات هوگر",
+      "link": "https://hosseinibrothers.ir/محصولات-ویژه/محصولات-هوگر/"
+    },
+    {
+      "name": "پک اقتصادی خانوار",
+      "link": "https://hosseinibrothers.ir/پک-اقتصادی-خانوار/"
+    }
+  ],
+  "domain": "hosseinibrothers.ir"
+}

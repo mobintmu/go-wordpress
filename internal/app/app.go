@@ -2,7 +2,7 @@ package app
 
 import (
 	"go-wordpress/internal/config"
-	"go-wordpress/internal/crawler"
+	"go-wordpress/internal/crawler/website"
 	"go-wordpress/internal/health"
 	"go-wordpress/internal/poller"
 	"go-wordpress/internal/poller/dispatcher"
@@ -41,7 +41,7 @@ func NewApp() *fx.App {
 			productController.NewGRPC,
 			//service
 			productService.New,
-			crawler.New,
+			website.New,
 			// dispatcher
 			dispatcher.New,
 			poller.New,

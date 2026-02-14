@@ -1,14 +1,6 @@
 {
   "domain": "badomjip.com",
-  "start_urls": [
-    "https://badomjip.com/product-category/%d9%be%da%a9%db%8c%d8%ac%d9%87%d8%a7/"
-  ],
-  "categories": [
-    {
-      "name": "پکیجها",
-      "link": "https://badomjip.com/product-category/%d9%be%da%a9%db%8c%d8%ac%d9%87%d8%a7/"
-    }
-  ],
+  "start_url": "https://badomjip.com/",
   "product_list": {
     "item": "div.product-grid-item",
     "fields": {

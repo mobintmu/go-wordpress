@@ -1,4 +1,4 @@
-package crawler
+package domain
 
 type Product struct {
 	Title       string
@@ -23,15 +23,6 @@ type Category struct {
 	CleanedProducts []ProductClean
 }
 
-type Website struct {
-	Domain        string
-	Categories    []Category
-	StartURLs     []string            `json:"start_urls"`
-	ProductList   ProductListConfig   `json:"product_list"`
-	Pagination    *PaginationConfig   `json:"pagination,omitempty"`
-	ProductDetail ProductDetailConfig `json:"product_detail"`
-}
-
 type FieldConfig struct {
 	Selector string `json:"selector"`
 	Attr     string `json:"attr"`
@@ -48,4 +39,13 @@ type PaginationConfig struct {
 
 type ProductDetailConfig struct {
 	Description FieldConfig `json:"description"`
+}
+
+type Websites struct {
+	Websites []Website `json:"websites"`
+}
+
+type Website struct {
+	Name   string `json:"name"`
+	Domain string `json:"domain"`
 }
