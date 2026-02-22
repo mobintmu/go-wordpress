@@ -1,13 +1,19 @@
 package app
 
 import (
+	categoryController "go-wordpress/internal/category/controller"
+	categoryService "go-wordpress/internal/category/service"
 	"go-wordpress/internal/config"
-	"go-wordpress/internal/crawler/website"
+	configsController "go-wordpress/internal/configs/controller"
+	configsService "go-wordpress/internal/configs/service"
 	"go-wordpress/internal/health"
 	"go-wordpress/internal/poller"
 	"go-wordpress/internal/poller/dispatcher"
 	productController "go-wordpress/internal/product/controller"
 	productService "go-wordpress/internal/product/service"
+	websiteController "go-wordpress/internal/website/controller"
+	websiteService "go-wordpress/internal/website/service"
+
 	"go-wordpress/internal/server"
 	"go-wordpress/internal/storage/cache"
 	"go-wordpress/internal/storage/sql"
@@ -36,12 +42,16 @@ func NewApp() *fx.App {
 			cache.NewClient,
 			cache.NewCacheStore,
 			//controller
-			productController.NewAdmin,
-			productController.NewClient,
+			productController.NewAdminProduct,
+			websiteController.NewAdminWebsite,
+			categoryController.NewAdminCategory,
 			productController.NewGRPC,
+			configsController.NewAdminConfig,
 			//service
 			productService.New,
-			website.New,
+			websiteService.New,
+			categoryService.New,
+			configsService.New,
 			// dispatcher
 			dispatcher.New,
 			poller.New,

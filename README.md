@@ -106,15 +106,6 @@ go get -tool google.golang.org/grpc/cmd/protoc-gen-go-grpc
 ```
 
 
-## deploy on Liara
-
-```
-npm install -g @liara/cli
-liara login
-liara deploy
-```
-
-
 ## Build docker file
 
 ```

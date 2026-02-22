@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"testing"
 
@@ -10,123 +11,63 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	productv1 "go-wordpress/api/proto/product/v1"
+	"go-wordpress/internal/auth"
 	"go-wordpress/internal/config"
-	"go-wordpress/internal/product/dto"
+	"go-wordpress/internal/storage/sql/sqlc"
 )
 
-func TestProductGRPCGetProductByID(t *testing.T) {
+func TestProductGRPC(t *testing.T) {
 	WithHttpTestServer(t, func() {
 		cfg, err := config.NewConfig()
 		if err != nil {
 			t.Fatalf("Failed to load config: %v", err)
 		}
-		addr := cfg.HTTPAddress + ":" + strconv.Itoa(cfg.GRPCPort)
-		conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-		assert.NoError(t, err)
-		defer conn.Close()
-		client := productv1.NewProductServiceClient(conn)
-		var product dto.ProductResponse
-		grpcCreateProduct(t, &product, client)
-		grpcGetProductByID(t, product, client)
-		grpcListProducts(t, product, client)
-		grpcUpdateProduct(t, product, client)
-		grpcDeleteProduct(t, product, client)
-	})
-}
 
-func grpcCreateProduct(t *testing.T, product *dto.ProductResponse, client productv1.ProductServiceClient) {
-	t.Run("create Product (gRPC)", func(t *testing.T) {
-		req := &productv1.CreateProductRequest{
-			Name:        "Test Product gRPC",
-			Description: "A product created during gRPC testing",
-			Price:       30,
-		}
-		resp, err := client.CreateProduct(context.Background(), req)
+		base := fmt.Sprintf("http://%s:%d/api/v1/admin", cfg.HTTPAddress, cfg.HTTPPort)
+
+		token, err := auth.GenerateToken(cfg, "admin-123")
 		if err != nil {
-			t.Fatalf("gRPC CreateProduct failed: %v", err)
+			t.Fatalf("Failed to generate token: %v", err)
 		}
-		assert.NotNil(t, resp)
-		assert.NotEmpty(t, resp.Id)
-		product.ID = resp.Id
-		product.Name = req.Name
-		product.Description = req.Description
-		product.Price = req.Price
-		t.Logf("gRPC Created product: %+v", product)
+
+		// Create prerequisites.
+		var website sqlc.Website
+		adminCreateWebsite(t, &website, base+"/websites", token)
+		defer adminDeleteWebsite(t, website, base+"/websites", token)
+
+		var category sqlc.Category
+		adminCreateCategory(t, &category, base+"/categories", token, website.ID)
+		defer adminDeleteCategory(t, category, base+"/categories", token)
+
+		var product sqlc.Product
+		adminCreateProduct(t, &product, base+"/products", token, website.ID, category.ID)
+		defer adminDeleteProduct(t, product, base+"/products", token)
+
+		// Connect to gRPC server.
+		grpcAddr := cfg.HTTPAddress + ":" + strconv.Itoa(cfg.GRPCPort)
+		conn, err := grpc.NewClient(grpcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			t.Fatalf("Failed to connect to gRPC server: %v", err)
+		}
+		defer conn.Close()
+
+		client := productv1.NewProductServiceClient(conn)
+
+		grpcGetProductByID(t, product, client)
 	})
 }
 
-func grpcGetProductByID(t *testing.T, product dto.ProductResponse, client productv1.ProductServiceClient) {
-	t.Run("Get Product by ID (gRPC)", func(t *testing.T) {
-		req := &productv1.ProductRequest{
+func grpcGetProductByID(t *testing.T, product sqlc.Product, client productv1.ProductServiceClient) {
+	t.Run("Get Product By ID (gRPC)", func(t *testing.T) {
+		resp, err := client.GetProductByID(context.Background(), &productv1.ProductRequest{
 			Id: product.ID,
-		}
-		resp, err := client.GetProductByID(context.Background(), req)
+		})
 		if err != nil {
 			t.Fatalf("gRPC GetProductByID failed: %v", err)
 		}
+
 		assert.NotNil(t, resp)
 		assert.Equal(t, product.ID, resp.Id)
-		assert.Equal(t, product.Name, resp.Name)
-		assert.Equal(t, product.Description, resp.Description)
-		assert.Equal(t, product.Price, resp.Price)
-		t.Logf("gRPC Retrieved product by ID: %+v", resp)
-	})
-}
-
-func grpcListProducts(t *testing.T, product dto.ProductResponse, client productv1.ProductServiceClient) {
-	t.Run("List Products (gRPC)", func(t *testing.T) {
-		resp, err := client.ListProducts(context.Background(), nil)
-		if err != nil {
-			t.Fatalf("gRPC ListProducts failed: %v", err)
-		}
-		assert.NotNil(t, resp)
-		found := false
-		for _, p := range resp.Products {
-			if p.Id == product.ID {
-				found = true
-				t.Logf("gRPC Found product in list: %+v", p)
-				break
-			}
-		}
-		if !found {
-			t.Errorf("gRPC Product not found in list")
-		}
-	})
-}
-
-func grpcUpdateProduct(t *testing.T, product dto.ProductResponse, client productv1.ProductServiceClient) {
-	t.Run("Update Product (gRPC)", func(t *testing.T) {
-		req := &productv1.UpdateProductRequest{
-			Id:          product.ID,
-			Name:        "Updated gRPC Product",
-			Description: "An updated product during gRPC testing",
-			Price:       50,
-			IsActive:    true,
-		}
-		resp, err := client.UpdateProduct(context.Background(), req)
-		if err != nil {
-			t.Fatalf("gRPC UpdateProduct failed: %v", err)
-		}
-		assert.NotNil(t, resp)
-		assert.Equal(t, req.Id, resp.Id)
-		assert.Equal(t, req.Name, resp.Name)
-		assert.Equal(t, req.Description, resp.Description)
-		assert.Equal(t, req.Price, resp.Price)
-		t.Logf("gRPC Updated product: %+v", resp)
-	})
-}
-
-func grpcDeleteProduct(t *testing.T, product dto.ProductResponse, client productv1.ProductServiceClient) {
-	t.Run("Delete Product (gRPC)", func(t *testing.T) {
-		req := &productv1.DeleteProductRequest{
-			Id: product.ID,
-		}
-		resp, err := client.DeleteProduct(context.Background(), req)
-		if err != nil {
-			t.Fatalf("gRPC DeleteProduct failed: %v", err)
-		}
-		assert.NotNil(t, resp)
-		assert.Equal(t, product.ID, resp.Id)
-		t.Logf("gRPC Deleted product ID: %d", resp.Id)
+		t.Logf("gRPC retrieved product ID: %d", resp.Id)
 	})
 }

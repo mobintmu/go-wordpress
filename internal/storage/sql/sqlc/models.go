@@ -5,14 +5,95 @@
 package sqlc
 
 import (
+	"database/sql"
+	"database/sql/driver"
+	"encoding/json"
+	"fmt"
 	"time"
 )
 
+type EntityStatus string
+
+const (
+	EntityStatusActive     EntityStatus = "active"
+	EntityStatusInactive   EntityStatus = "inactive"
+	EntityStatusInProgress EntityStatus = "in_progress"
+)
+
+func (e *EntityStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = EntityStatus(s)
+	case string:
+		*e = EntityStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for EntityStatus: %T", src)
+	}
+	return nil
+}
+
+type NullEntityStatus struct {
+	EntityStatus EntityStatus
+	Valid        bool // Valid is true if EntityStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullEntityStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.EntityStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.EntityStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullEntityStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.EntityStatus), nil
+}
+
+type Category struct {
+	ID        int32
+	WebsiteID int32
+	Name      string
+	Link      string
+	Status    EntityStatus
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type Config struct {
+	ID        int32
+	WebsiteID int32
+	Key       string
+	Value     json.RawMessage
+	Status    EntityStatus
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
 type Product struct {
-	ID                 int32
-	ProductName        string
-	ProductDescription string
-	Price              int64
-	IsActive           bool
-	CreatedAt          time.Time
+	ID          int32
+	WebsiteID   int32
+	CategoryID  int32
+	Title       string
+	Price       int64
+	Link        string
+	Image       sql.NullString
+	Description sql.NullString
+	Status      EntityStatus
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+type Website struct {
+	ID        int32
+	Name      string
+	Domain    string
+	Status    EntityStatus
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }

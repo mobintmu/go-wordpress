@@ -1,43 +1,301 @@
 definitions:
-  go-simple_internal_http_response.ErrorResponse:
+  go-wordpress_internal_http_response.ErrorResponse:
     properties:
       error:
         type: string
     type: object
-  go-simple_internal_product_dto.AdminCreateProductRequest:
+  go-wordpress_internal_shared.Pagination:
     properties:
-      description:
-        type: string
-      is_active:
-        type: boolean
-      name:
-        type: string
-      price:
+      limit:
+        type: integer
+      offset:
         type: integer
     type: object
-  go-simple_internal_product_dto.AdminUpdateProductRequest:
+  go-wordpress_internal_storage_sql_sqlc.Category:
     properties:
-      description:
+      createdAt:
         type: string
       id:
+        format: int32
         type: integer
-      is_active:
-        type: boolean
+      link:
+        type: string
       name:
         type: string
-      price:
+      status:
+        $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.EntityStatus'
+      updatedAt:
+        type: string
+      websiteID:
+        format: int32
         type: integer
     type: object
-  go-simple_internal_product_dto.ProductResponse:
+  go-wordpress_internal_storage_sql_sqlc.CreateCategoryParams:
     properties:
-      description:
+      link:
+        type: string
+      name:
+        type: string
+      websiteID:
+        format: int32
+        type: integer
+    type: object
+  go-wordpress_internal_storage_sql_sqlc.CreateConfigParams:
+    properties:
+      key:
+        type: string
+      value:
+        items:
+          format: int32
+          type: integer
+        type: array
+      websiteID:
+        format: int32
+        type: integer
+    type: object
+  go-wordpress_internal_storage_sql_sqlc.CreateConfigRow:
+    properties:
+      createdAt:
         type: string
       id:
+        format: int32
+        type: integer
+      key:
+        type: string
+      updatedAt:
+        type: string
+      value:
+        items:
+          format: int32
+          type: integer
+        type: array
+      websiteID:
+        format: int32
+        type: integer
+    type: object
+  go-wordpress_internal_storage_sql_sqlc.CreateProductParams:
+    properties:
+      categoryID:
+        format: int32
+        type: integer
+      description:
+        $ref: '#/definitions/sql.NullString'
+      image:
+        $ref: '#/definitions/sql.NullString'
+      link:
+        type: string
+      price:
+        format: int64
+        type: integer
+      status:
+        $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.EntityStatus'
+      title:
+        type: string
+      websiteID:
+        format: int32
+        type: integer
+    type: object
+  go-wordpress_internal_storage_sql_sqlc.CreateWebsiteParams:
+    properties:
+      domain:
+        type: string
+      name:
+        type: string
+    type: object
+  go-wordpress_internal_storage_sql_sqlc.CreateWebsiteRow:
+    properties:
+      domain:
+        type: string
+      id:
+        format: int32
         type: integer
       name:
         type: string
-      price:
+    type: object
+  go-wordpress_internal_storage_sql_sqlc.EntityStatus:
+    enum:
+    - active
+    - inactive
+    - in_progress
+    type: string
+    x-enum-varnames:
+    - EntityStatusActive
+    - EntityStatusInactive
+    - EntityStatusInProgress
+  go-wordpress_internal_storage_sql_sqlc.GetConfigByIDRow:
+    properties:
+      createdAt:
+        type: string
+      id:
+        format: int32
         type: integer
+      key:
+        type: string
+      updatedAt:
+        type: string
+      value:
+        items:
+          format: int32
+          type: integer
+        type: array
+      websiteID:
+        format: int32
+        type: integer
+    type: object
+  go-wordpress_internal_storage_sql_sqlc.ListAllConfigsRow:
+    properties:
+      createdAt:
+        type: string
+      id:
+        format: int32
+        type: integer
+      key:
+        type: string
+      updatedAt:
+        type: string
+      value:
+        items:
+          format: int32
+          type: integer
+        type: array
+      websiteID:
+        format: int32
+        type: integer
+    type: object
+  go-wordpress_internal_storage_sql_sqlc.Product:
+    properties:
+      categoryID:
+        format: int32
+        type: integer
+      createdAt:
+        type: string
+      description:
+        $ref: '#/definitions/sql.NullString'
+      id:
+        format: int32
+        type: integer
+      image:
+        $ref: '#/definitions/sql.NullString'
+      link:
+        type: string
+      price:
+        format: int64
+        type: integer
+      status:
+        $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.EntityStatus'
+      title:
+        type: string
+      updatedAt:
+        type: string
+      websiteID:
+        format: int32
+        type: integer
+    type: object
+  go-wordpress_internal_storage_sql_sqlc.UpdateCategoryParams:
+    properties:
+      id:
+        format: int32
+        type: integer
+      link:
+        type: string
+      name:
+        type: string
+      status:
+        $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.EntityStatus'
+      websiteID:
+        format: int32
+        type: integer
+    type: object
+  go-wordpress_internal_storage_sql_sqlc.UpdateConfigParams:
+    properties:
+      id:
+        format: int32
+        type: integer
+      key:
+        type: string
+      status:
+        $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.EntityStatus'
+      value:
+        items:
+          format: int32
+          type: integer
+        type: array
+      websiteID:
+        format: int32
+        type: integer
+    type: object
+  go-wordpress_internal_storage_sql_sqlc.UpdateConfigRow:
+    properties:
+      createdAt:
+        type: string
+      id:
+        format: int32
+        type: integer
+      key:
+        type: string
+      updatedAt:
+        type: string
+      value:
+        items:
+          format: int32
+          type: integer
+        type: array
+      websiteID:
+        format: int32
+        type: integer
+    type: object
+  go-wordpress_internal_storage_sql_sqlc.UpdateProductParams:
+    properties:
+      categoryID:
+        format: int32
+        type: integer
+      description:
+        $ref: '#/definitions/sql.NullString'
+      id:
+        format: int32
+        type: integer
+      image:
+        $ref: '#/definitions/sql.NullString'
+      link:
+        type: string
+      price:
+        format: int64
+        type: integer
+      status:
+        $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.EntityStatus'
+      title:
+        type: string
+      websiteID:
+        format: int32
+        type: integer
+    type: object
+  go-wordpress_internal_storage_sql_sqlc.UpdateWebsiteParams:
+    properties:
+      domain:
+        type: string
+      id:
+        format: int32
+        type: integer
+      name:
+        type: string
+      status:
+        $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.EntityStatus'
+    type: object
+  go-wordpress_internal_storage_sql_sqlc.Website:
+    properties:
+      createdAt:
+        type: string
+      domain:
+        type: string
+      id:
+        format: int32
+        type: integer
+      name:
+        type: string
+      status:
+        $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.EntityStatus'
+      updatedAt:
+        type: string
     type: object
   internal_health.HealthResponse:
     properties:
@@ -45,12 +303,27 @@ definitions:
         example: OK
         type: string
     type: object
+  sql.NullString:
+    properties:
+      string:
+        type: string
+      valid:
+        description: Valid is true if String is not NULL
+        type: boolean
+    type: object
 info:
   contact: {}
 paths:
-  /api/v1/admin/products:
+  /api/v1/admin/categories:
     get:
-      description: Get a list of all products
+      description: Get a list of all categories
+      parameters:
+      - in: query
+        name: limit
+        type: integer
+      - in: query
+        name: offset
+        type: integer
       produces:
       - application/json
       responses:
@@ -58,14 +331,311 @@ paths:
           description: OK
           schema:
             items:
-              items:
-                $ref: '#/definitions/go-simple_internal_product_dto.ProductResponse'
-              type: array
+              $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.Category'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List all categories
+      tags:
+      - Admin Categories
+    post:
+      consumes:
+      - application/json
+      description: Create a new category with the provided details
+      parameters:
+      - description: Category to create
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.CreateCategoryParams'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.Category'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new category
+      tags:
+      - Admin Categories
+  /api/v1/admin/categories/{id}:
+    delete:
+      description: Delete a category by its ID
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a category by ID
+      tags:
+      - Admin Categories
+    get:
+      description: Get a category by its ID
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.Category'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a category by ID
+      tags:
+      - Admin Categories
+    put:
+      consumes:
+      - application/json
+      description: Update category details by ID
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated category details
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.UpdateCategoryParams'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.Category'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update an existing category
+      tags:
+      - Admin Categories
+  /api/v1/admin/configs:
+    get:
+      description: Get a list of all configs
+      parameters:
+      - in: query
+        name: limit
+        type: integer
+      - in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.ListAllConfigsRow'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List all configs
+      tags:
+      - Admin Configs
+    post:
+      consumes:
+      - application/json
+      description: Create a new config with the provided details
+      parameters:
+      - description: Config to create
+        in: body
+        name: config
+        required: true
+        schema:
+          $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.CreateConfigParams'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.CreateConfigRow'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new config
+      tags:
+      - Admin Configs
+  /api/v1/admin/configs/{id}:
+    delete:
+      description: Delete a config by its ID
+      parameters:
+      - description: Config ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a config by ID
+      tags:
+      - Admin Configs
+    get:
+      description: Get a config by its ID
+      parameters:
+      - description: Config ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.GetConfigByIDRow'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a config by ID
+      tags:
+      - Admin Configs
+    put:
+      consumes:
+      - application/json
+      description: Update config details by ID
+      parameters:
+      - description: Config ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated config details
+        in: body
+        name: config
+        required: true
+        schema:
+          $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.UpdateConfigParams'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.UpdateConfigRow'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update an existing config
+      tags:
+      - Admin Configs
+  /api/v1/admin/products:
+    get:
+      description: Get a list of all products
+      parameters:
+      - description: Pagination parameters
+        in: body
+        name: product
+        schema:
+          $ref: '#/definitions/go-wordpress_internal_shared.Pagination'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.Product'
             type: array
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/go-simple_internal_http_response.ErrorResponse'
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
       security:
       - BearerAuth: []
       summary: List all products
@@ -81,22 +651,22 @@ paths:
         name: product
         required: true
         schema:
-          $ref: '#/definitions/go-simple_internal_product_dto.AdminCreateProductRequest'
+          $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.CreateProductParams'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/go-simple_internal_product_dto.ProductResponse'
+            $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.Product'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/go-simple_internal_http_response.ErrorResponse'
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/go-simple_internal_http_response.ErrorResponse'
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Create a new product
@@ -117,11 +687,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/go-simple_internal_http_response.ErrorResponse'
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/go-simple_internal_http_response.ErrorResponse'
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Delete a product by ID
@@ -139,15 +709,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/go-simple_internal_product_dto.ProductResponse'
+            $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.Product'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/go-simple_internal_http_response.ErrorResponse'
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/go-simple_internal_http_response.ErrorResponse'
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get a product by ID
@@ -168,30 +738,37 @@ paths:
         name: product
         required: true
         schema:
-          $ref: '#/definitions/go-simple_internal_product_dto.AdminUpdateProductRequest'
+          $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.UpdateProductParams'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/go-simple_internal_product_dto.ProductResponse'
+            $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.Product'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/go-simple_internal_http_response.ErrorResponse'
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/go-simple_internal_http_response.ErrorResponse'
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Update an existing product
       tags:
       - Admin Products
-  /api/v1/products:
+  /api/v1/admin/websites:
     get:
-      description: Get a list of all products
+      description: Get a list of all websites
+      parameters:
+      - in: query
+        name: limit
+        type: integer
+      - in: query
+        name: offset
+        type: integer
       produces:
       - application/json
       responses:
@@ -199,22 +776,81 @@ paths:
           description: OK
           schema:
             items:
-              items:
-                $ref: '#/definitions/go-simple_internal_product_dto.ProductResponse'
-              type: array
+              $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.Website'
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/go-simple_internal_http_response.ErrorResponse'
-      summary: List all products
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List all websites
       tags:
-      - Products
-  /api/v1/products/{id}:
-    get:
-      description: Get a product by its ID
+      - Admin Websites
+    post:
+      consumes:
+      - application/json
+      description: Create a new website with the provided details
       parameters:
-      - description: Product ID
+      - description: Website to create
+        in: body
+        name: website
+        required: true
+        schema:
+          $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.CreateWebsiteParams'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.CreateWebsiteRow'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new website
+      tags:
+      - Admin Websites
+  /api/v1/admin/websites/{id}:
+    delete:
+      description: Delete a website by its ID
+      parameters:
+      - description: Website ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a website by ID
+      tags:
+      - Admin Websites
+    get:
+      description: Get a website by its ID
+      parameters:
+      - description: Website ID
         in: path
         name: id
         required: true
@@ -223,18 +859,56 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/go-simple_internal_product_dto.ProductResponse'
+            $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.Website'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/go-simple_internal_http_response.ErrorResponse'
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/go-simple_internal_http_response.ErrorResponse'
-      summary: Get a product by ID
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a website by ID
       tags:
-      - Products
+      - Admin Websites
+    put:
+      consumes:
+      - application/json
+      description: Update website details by ID
+      parameters:
+      - description: Website ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated website details
+        in: body
+        name: website
+        required: true
+        schema:
+          $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.UpdateWebsiteParams'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_storage_sql_sqlc.Website'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/go-wordpress_internal_http_response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update an existing website
+      tags:
+      - Admin Websites
   /health:
     get:
       description: Returns the health status of the API

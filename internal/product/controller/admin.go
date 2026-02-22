@@ -7,8 +7,9 @@ import (
 	"go-wordpress/internal/config"
 	"go-wordpress/internal/http/response"
 	"go-wordpress/internal/middleware"
-	"go-wordpress/internal/product/dto"
 	"go-wordpress/internal/product/service"
+	"go-wordpress/internal/shared"
+	"go-wordpress/internal/storage/sql/sqlc"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +18,7 @@ type AdminProduct struct {
 	Service *service.Product
 }
 
-func NewAdmin(s *service.Product) *AdminProduct {
+func NewAdminProduct(s *service.Product) *AdminProduct {
 	return &AdminProduct{Service: s}
 }
 
@@ -37,14 +38,14 @@ func (c *AdminProduct) RegisterRoutes(rg *gin.RouterGroup, cfg *config.Config) {
 // @Tags Admin Products
 // @Accept json
 // @Produce json
-// @Param product body dto.AdminCreateProductRequest true "Product to create"
-// @Success 201 {object} dto.ProductResponse
+// @Param product body sqlc.CreateProductParams true "Product to create"
+// @Success 201 {object} sqlc.Product
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Security BearerAuth
 // @Router /api/v1/admin/products [post]
 func (c *AdminProduct) CreateProduct(ctx *gin.Context) {
-	var req dto.AdminCreateProductRequest
+	var req sqlc.CreateProductParams
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		response.JSONError(ctx, http.StatusBadRequest, err)
 		return
@@ -64,8 +65,8 @@ func (c *AdminProduct) CreateProduct(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "Product ID"
-// @Param product body dto.AdminUpdateProductRequest true "Updated product details"
-// @Success 200 {object} dto.ProductResponse
+// @Param product body sqlc.UpdateProductParams true "Updated product details"
+// @Success 200 {object} sqlc.Product
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Security BearerAuth
@@ -76,7 +77,7 @@ func (c *AdminProduct) UpdateProduct(ctx *gin.Context) {
 		response.JSONError(ctx, http.StatusBadRequest, response.ErrInvalidID)
 		return
 	}
-	var req dto.AdminUpdateProductRequest
+	var req sqlc.UpdateProductParams
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		response.JSONError(ctx, http.StatusBadRequest, err)
 		return
@@ -118,7 +119,7 @@ func (c *AdminProduct) DeleteProduct(ctx *gin.Context) {
 // @Description Get a product by its ID
 // @Tags Admin Products
 // @Param id path int true "Product ID"
-// @Success 200 {object} dto.ProductResponse
+// @Success 200 {object} sqlc.Product
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Security BearerAuth
@@ -129,7 +130,6 @@ func (c *AdminProduct) GetProductByID(ctx *gin.Context) {
 		response.JSONError(ctx, http.StatusBadRequest, response.ErrInvalidID)
 		return
 	}
-
 	product, err := c.Service.GetProductByID(ctx, int32(id))
 	if err != nil {
 		response.JSONError(ctx, http.StatusInternalServerError, err)
@@ -142,13 +142,22 @@ func (c *AdminProduct) GetProductByID(ctx *gin.Context) {
 // @Summary List all products
 // @Description Get a list of all products
 // @Tags Admin Products
+// @Param product body shared.Pagination false "Pagination parameters"
 // @Produce json
-// @Success 200 {array} dto.ClientListProductsResponse
+// @Success 200 {array} sqlc.Product
 // @Failure 500 {object} response.ErrorResponse
 // @Security BearerAuth
 // @Router /api/v1/admin/products [get]
 func (c *AdminProduct) ListProducts(ctx *gin.Context) {
-	products, err := c.Service.ListProducts(ctx)
+	pagination := shared.Pagination{
+		Limit:  10,
+		Offset: 0,
+	}
+	if err := ctx.ShouldBindQuery(&pagination); err != nil {
+		response.JSONError(ctx, http.StatusBadRequest, err)
+		return
+	}
+	products, err := c.Service.ListProducts(ctx, pagination)
 	if err != nil {
 		response.JSONError(ctx, http.StatusInternalServerError, err)
 		return

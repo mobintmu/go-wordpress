@@ -4,6 +4,7 @@ import (
 	"context"
 	"go-wordpress/internal/config"
 	"go-wordpress/internal/product/dto"
+	"go-wordpress/internal/shared"
 	"go-wordpress/internal/storage/cache"
 	"go-wordpress/internal/storage/sql/sqlc"
 
@@ -29,93 +30,64 @@ func New(q *sqlc.Queries,
 	}
 }
 
-func (s *Product) Create(ctx context.Context, req dto.AdminCreateProductRequest) (dto.ProductResponse, error) {
-	arg := sqlc.CreateProductParams{
-		ProductName:        req.Name,
-		ProductDescription: req.Description,
-		Price:              req.Price,
-		IsActive:           true,
-	}
-	product, err := s.query.CreateProduct(ctx, arg)
+func (s *Product) Create(ctx context.Context, req sqlc.CreateProductParams) (*sqlc.Product, error) {
+	product, err := s.query.CreateProduct(ctx, req)
 	if err != nil {
-		return dto.ProductResponse{}, err
+		return nil, err
 	}
-	s.log.Info("Product created", zap.Int32("id", product.ID))
 	s.memory.Set(ctx, s.memory.KeyProduct(product.ID), product, s.cfg.Redis.DefaultTTL)
-	s.memory.Delete(ctx, s.memory.KeyAllProducts())
-	return dto.ProductResponse{
-		ID:          product.ID,
-		Name:        product.ProductName,
-		Description: product.ProductDescription,
-		Price:       product.Price,
-	}, nil
+	s.memory.DeleteAllProductCache(ctx)
+	return &product, nil
 }
 
-func (s *Product) Update(ctx context.Context, req dto.AdminUpdateProductRequest) (dto.ProductResponse, error) {
-	arg := sqlc.UpdateProductParams{
-		ID:                 int32(req.ID),
-		ProductName:        req.Name,
-		ProductDescription: req.Description,
-		Price:              req.Price,
-		IsActive:           req.IsActive,
-	}
-	product, err := s.query.UpdateProduct(ctx, arg)
+func (s *Product) Update(ctx context.Context, req sqlc.UpdateProductParams) (*sqlc.Product, error) {
+	product, err := s.query.UpdateProduct(ctx, req)
 	if err != nil {
-		return dto.ProductResponse{}, err
+		return nil, err
 	}
 	s.memory.Set(ctx, s.memory.KeyProduct(product.ID), product, s.cfg.Redis.DefaultTTL)
-	s.memory.Delete(ctx, s.memory.KeyAllProducts())
-	return dto.ProductResponse{
-		ID:          product.ID,
-		Name:        product.ProductName,
-		Description: product.ProductDescription,
-		Price:       product.Price,
-	}, nil
+	s.memory.DeleteAllProductCache(ctx)
+	return &product, nil
 }
 
 func (s *Product) Delete(ctx context.Context, id int32) error {
 	s.memory.Delete(ctx, s.memory.KeyProduct(id))
-	s.memory.Delete(ctx, s.memory.KeyAllProducts())
+	s.memory.DeleteAllProductCache(ctx)
 	return s.query.DeleteProduct(ctx, id)
 }
 
-func (s *Product) GetProductByID(ctx context.Context, id int32) (dto.ProductResponse, error) {
+func (s *Product) GetProductByID(ctx context.Context, id int32) (*sqlc.Product, error) {
 	var product sqlc.Product
 	err := s.memory.Get(ctx, s.memory.KeyProduct(id), &product)
 	if err != nil {
-		product, err = s.query.GetProduct(ctx, id)
+		product, err = s.query.GetProductByID(ctx, id)
 		if err != nil {
-			return dto.ProductResponse{}, err
+			return nil, err
 		}
 		s.memory.Set(ctx, s.memory.KeyProduct(product.ID), product, s.cfg.Redis.DefaultTTL)
 	}
-	result := dto.ProductResponse{
-		ID:          product.ID,
-		Name:        product.ProductName,
-		Description: product.ProductDescription,
-		Price:       product.Price,
-	}
-	return result, nil
+	return &product, nil
 }
 
-func (s *Product) ListProducts(ctx context.Context) (dto.ClientListProductsResponse, error) {
-	var resp []dto.ProductResponse
-	if err := s.memory.Get(ctx, s.memory.KeyAllProducts(), &resp); err == nil {
+func (s *Product) ListProducts(ctx context.Context, pagination shared.Pagination) (dto.ProductsResponse, error) {
+	var resp dto.ProductsResponse
+	if err := s.memory.Get(ctx, s.memory.KeyAllProducts(pagination.Limit, pagination.Offset), &resp); err == nil {
 		return resp, nil
 	}
-	products, err := s.query.ListProducts(ctx)
+	if pagination.Limit == 0 {
+		pagination.Limit = 10
+	}
+	products, err := s.query.ListAllProducts(ctx, sqlc.ListAllProductsParams{
+		Limit:  pagination.Limit,
+		Offset: pagination.Offset,
+	})
 	if err != nil {
 		return nil, err
 	}
-	resp = make([]dto.ProductResponse, 0, len(products))
+	resp = make([]sqlc.Product, 0, len(products))
 	for _, product := range products {
-		resp = append(resp, dto.ProductResponse{
-			ID:          product.ID,
-			Name:        product.ProductName,
-			Description: product.ProductDescription,
-			Price:       product.Price,
-		})
+		resp = append(resp, product)
 	}
-	s.memory.Set(ctx, s.memory.KeyAllProducts(), resp, s.cfg.Redis.DefaultTTL)
+	s.memory.Set(ctx, s.memory.KeyAllProducts(pagination.Limit, pagination.Offset), resp, s.cfg.Redis.DefaultTTL)
 	return resp, nil
 }

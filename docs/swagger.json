@@ -4,6 +4,482 @@
         "contact": {}
     },
     "paths": {
+        "/api/v1/admin/categories": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a list of all categories",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Categories"
+                ],
+                "summary": "List all categories",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.Category"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new category with the provided details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Categories"
+                ],
+                "summary": "Create a new category",
+                "parameters": [
+                    {
+                        "description": "Category to create",
+                        "name": "category",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.CreateCategoryParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.Category"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/categories/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a category by its ID",
+                "tags": [
+                    "Admin Categories"
+                ],
+                "summary": "Get a category by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Category ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.Category"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update category details by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Categories"
+                ],
+                "summary": "Update an existing category",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Category ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated category details",
+                        "name": "category",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.UpdateCategoryParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.Category"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete a category by its ID",
+                "tags": [
+                    "Admin Categories"
+                ],
+                "summary": "Delete a category by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Category ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/configs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a list of all configs",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Configs"
+                ],
+                "summary": "List all configs",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.ListAllConfigsRow"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new config with the provided details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Configs"
+                ],
+                "summary": "Create a new config",
+                "parameters": [
+                    {
+                        "description": "Config to create",
+                        "name": "config",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.CreateConfigParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.CreateConfigRow"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/configs/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a config by its ID",
+                "tags": [
+                    "Admin Configs"
+                ],
+                "summary": "Get a config by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Config ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.GetConfigByIDRow"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update config details by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Configs"
+                ],
+                "summary": "Update an existing config",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Config ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated config details",
+                        "name": "config",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.UpdateConfigParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.UpdateConfigRow"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete a config by its ID",
+                "tags": [
+                    "Admin Configs"
+                ],
+                "summary": "Delete a config by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Config ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/admin/products": {
             "get": {
                 "security": [
@@ -19,23 +495,30 @@
                     "Admin Products"
                 ],
                 "summary": "List all products",
+                "parameters": [
+                    {
+                        "description": "Pagination parameters",
+                        "name": "product",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_shared.Pagination"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/go-simple_internal_product_dto.ProductResponse"
-                                }
+                                "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.Product"
                             }
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/go-simple_internal_http_response.ErrorResponse"
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
                         }
                     }
                 }
@@ -64,7 +547,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/go-simple_internal_product_dto.AdminCreateProductRequest"
+                            "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.CreateProductParams"
                         }
                     }
                 ],
@@ -72,19 +555,19 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/go-simple_internal_product_dto.ProductResponse"
+                            "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.Product"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/go-simple_internal_http_response.ErrorResponse"
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/go-simple_internal_http_response.ErrorResponse"
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
                         }
                     }
                 }
@@ -115,19 +598,19 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/go-simple_internal_product_dto.ProductResponse"
+                            "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.Product"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/go-simple_internal_http_response.ErrorResponse"
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/go-simple_internal_http_response.ErrorResponse"
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
                         }
                     }
                 }
@@ -163,7 +646,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/go-simple_internal_product_dto.AdminUpdateProductRequest"
+                            "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.UpdateProductParams"
                         }
                     }
                 ],
@@ -171,19 +654,19 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/go-simple_internal_product_dto.ProductResponse"
+                            "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.Product"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/go-simple_internal_http_response.ErrorResponse"
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/go-simple_internal_http_response.ErrorResponse"
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
                         }
                     }
                 }
@@ -215,61 +698,135 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/go-simple_internal_http_response.ErrorResponse"
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/go-simple_internal_http_response.ErrorResponse"
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/api/v1/products": {
+        "/api/v1/admin/websites": {
             "get": {
-                "description": "Get a list of all products",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a list of all websites",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Products"
+                    "Admin Websites"
                 ],
-                "summary": "List all products",
+                "summary": "List all websites",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/go-simple_internal_product_dto.ProductResponse"
-                                }
+                                "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.Website"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/go-simple_internal_http_response.ErrorResponse"
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new website with the provided details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Websites"
+                ],
+                "summary": "Create a new website",
+                "parameters": [
+                    {
+                        "description": "Website to create",
+                        "name": "website",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.CreateWebsiteParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.CreateWebsiteRow"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/api/v1/products/{id}": {
+        "/api/v1/admin/websites/{id}": {
             "get": {
-                "description": "Get a product by its ID",
-                "tags": [
-                    "Products"
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
                 ],
-                "summary": "Get a product by ID",
+                "description": "Get a website by its ID",
+                "tags": [
+                    "Admin Websites"
+                ],
+                "summary": "Get a website by ID",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Product ID",
+                        "description": "Website ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -279,19 +836,113 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/go-simple_internal_product_dto.ProductResponse"
+                            "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.Website"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/go-simple_internal_http_response.ErrorResponse"
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/go-simple_internal_http_response.ErrorResponse"
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update website details by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Websites"
+                ],
+                "summary": "Update an existing website",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Website ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated website details",
+                        "name": "website",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.UpdateWebsiteParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.Website"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete a website by its ID",
+                "tags": [
+                    "Admin Websites"
+                ],
+                "summary": "Delete a website by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Website ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/go-wordpress_internal_http_response.ErrorResponse"
                         }
                     }
                 }
@@ -319,7 +970,7 @@
         }
     },
     "definitions": {
-        "go-simple_internal_http_response.ErrorResponse": {
+        "go-wordpress_internal_http_response.ErrorResponse": {
             "type": "object",
             "properties": {
                 "error": {
@@ -327,57 +978,431 @@
                 }
             }
         },
-        "go-simple_internal_product_dto.AdminCreateProductRequest": {
+        "go-wordpress_internal_shared.Pagination": {
             "type": "object",
             "properties": {
-                "description": {
-                    "type": "string"
+                "limit": {
+                    "type": "integer"
                 },
-                "is_active": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "price": {
+                "offset": {
                     "type": "integer"
                 }
             }
         },
-        "go-simple_internal_product_dto.AdminUpdateProductRequest": {
+        "go-wordpress_internal_storage_sql_sqlc.Category": {
             "type": "object",
             "properties": {
-                "description": {
+                "createdAt": {
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int32"
                 },
-                "is_active": {
-                    "type": "boolean"
+                "link": {
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"
                 },
-                "price": {
-                    "type": "integer"
+                "status": {
+                    "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.EntityStatus"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "websiteID": {
+                    "type": "integer",
+                    "format": "int32"
                 }
             }
         },
-        "go-simple_internal_product_dto.ProductResponse": {
+        "go-wordpress_internal_storage_sql_sqlc.CreateCategoryParams": {
             "type": "object",
             "properties": {
-                "description": {
+                "link": {
                     "type": "string"
-                },
-                "id": {
-                    "type": "integer"
                 },
                 "name": {
                     "type": "string"
                 },
+                "websiteID": {
+                    "type": "integer",
+                    "format": "int32"
+                }
+            }
+        },
+        "go-wordpress_internal_storage_sql_sqlc.CreateConfigParams": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                },
+                "websiteID": {
+                    "type": "integer",
+                    "format": "int32"
+                }
+            }
+        },
+        "go-wordpress_internal_storage_sql_sqlc.CreateConfigRow": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                },
+                "websiteID": {
+                    "type": "integer",
+                    "format": "int32"
+                }
+            }
+        },
+        "go-wordpress_internal_storage_sql_sqlc.CreateProductParams": {
+            "type": "object",
+            "properties": {
+                "categoryID": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "description": {
+                    "$ref": "#/definitions/sql.NullString"
+                },
+                "image": {
+                    "$ref": "#/definitions/sql.NullString"
+                },
+                "link": {
+                    "type": "string"
+                },
                 "price": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "status": {
+                    "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.EntityStatus"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "websiteID": {
+                    "type": "integer",
+                    "format": "int32"
+                }
+            }
+        },
+        "go-wordpress_internal_storage_sql_sqlc.CreateWebsiteParams": {
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "go-wordpress_internal_storage_sql_sqlc.CreateWebsiteRow": {
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "go-wordpress_internal_storage_sql_sqlc.EntityStatus": {
+            "type": "string",
+            "enum": [
+                "active",
+                "inactive",
+                "in_progress"
+            ],
+            "x-enum-varnames": [
+                "EntityStatusActive",
+                "EntityStatusInactive",
+                "EntityStatusInProgress"
+            ]
+        },
+        "go-wordpress_internal_storage_sql_sqlc.GetConfigByIDRow": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                },
+                "websiteID": {
+                    "type": "integer",
+                    "format": "int32"
+                }
+            }
+        },
+        "go-wordpress_internal_storage_sql_sqlc.ListAllConfigsRow": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                },
+                "websiteID": {
+                    "type": "integer",
+                    "format": "int32"
+                }
+            }
+        },
+        "go-wordpress_internal_storage_sql_sqlc.Product": {
+            "type": "object",
+            "properties": {
+                "categoryID": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "$ref": "#/definitions/sql.NullString"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "image": {
+                    "$ref": "#/definitions/sql.NullString"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "status": {
+                    "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.EntityStatus"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "websiteID": {
+                    "type": "integer",
+                    "format": "int32"
+                }
+            }
+        },
+        "go-wordpress_internal_storage_sql_sqlc.UpdateCategoryParams": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.EntityStatus"
+                },
+                "websiteID": {
+                    "type": "integer",
+                    "format": "int32"
+                }
+            }
+        },
+        "go-wordpress_internal_storage_sql_sqlc.UpdateConfigParams": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.EntityStatus"
+                },
+                "value": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                },
+                "websiteID": {
+                    "type": "integer",
+                    "format": "int32"
+                }
+            }
+        },
+        "go-wordpress_internal_storage_sql_sqlc.UpdateConfigRow": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                },
+                "websiteID": {
+                    "type": "integer",
+                    "format": "int32"
+                }
+            }
+        },
+        "go-wordpress_internal_storage_sql_sqlc.UpdateProductParams": {
+            "type": "object",
+            "properties": {
+                "categoryID": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "description": {
+                    "$ref": "#/definitions/sql.NullString"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "image": {
+                    "$ref": "#/definitions/sql.NullString"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "status": {
+                    "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.EntityStatus"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "websiteID": {
+                    "type": "integer",
+                    "format": "int32"
+                }
+            }
+        },
+        "go-wordpress_internal_storage_sql_sqlc.UpdateWebsiteParams": {
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.EntityStatus"
+                }
+            }
+        },
+        "go-wordpress_internal_storage_sql_sqlc.Website": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "domain": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/go-wordpress_internal_storage_sql_sqlc.EntityStatus"
+                },
+                "updatedAt": {
+                    "type": "string"
                 }
             }
         },
@@ -387,6 +1412,18 @@
                 "message": {
                     "type": "string",
                     "example": "OK"
+                }
+            }
+        },
+        "sql.NullString": {
+            "type": "object",
+            "properties": {
+                "string": {
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "Valid is true if String is not NULL",
+                    "type": "boolean"
                 }
             }
         }

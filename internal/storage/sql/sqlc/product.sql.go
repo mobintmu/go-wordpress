@@ -7,42 +7,57 @@ package sqlc
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createProduct = `-- name: CreateProduct :one
-INSERT INTO products (product_name, product_description, price, is_active)
-VALUES ($1, $2, $3, $4)
-RETURNING id, product_name, product_description, price, is_active, created_at
+INSERT INTO products (website_id, category_id, title, price, link, image, description, status)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING id, website_id, category_id, title, price, link, image, description, status, created_at, updated_at
 `
 
 type CreateProductParams struct {
-	ProductName        string
-	ProductDescription string
-	Price              int64
-	IsActive           bool
+	WebsiteID   int32
+	CategoryID  int32
+	Title       string
+	Price       int64
+	Link        string
+	Image       sql.NullString
+	Description sql.NullString
+	Status      EntityStatus
 }
 
 func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error) {
 	row := q.db.QueryRowContext(ctx, createProduct,
-		arg.ProductName,
-		arg.ProductDescription,
+		arg.WebsiteID,
+		arg.CategoryID,
+		arg.Title,
 		arg.Price,
-		arg.IsActive,
+		arg.Link,
+		arg.Image,
+		arg.Description,
+		arg.Status,
 	)
 	var i Product
 	err := row.Scan(
 		&i.ID,
-		&i.ProductName,
-		&i.ProductDescription,
+		&i.WebsiteID,
+		&i.CategoryID,
+		&i.Title,
 		&i.Price,
-		&i.IsActive,
+		&i.Link,
+		&i.Image,
+		&i.Description,
+		&i.Status,
 		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const deleteProduct = `-- name: DeleteProduct :exec
-DELETE FROM products WHERE id = $1
+DELETE FROM products
+WHERE id = $1
 `
 
 func (q *Queries) DeleteProduct(ctx context.Context, id int32) error {
@@ -50,30 +65,47 @@ func (q *Queries) DeleteProduct(ctx context.Context, id int32) error {
 	return err
 }
 
-const getProduct = `-- name: GetProduct :one
-SELECT id, product_name, product_description, price, is_active, created_at FROM products WHERE id = $1
+const getProductByID = `-- name: GetProductByID :one
+SELECT id, website_id, category_id, title, price, link, image, description, status, created_at, updated_at
+FROM products
+WHERE id = $1
 `
 
-func (q *Queries) GetProduct(ctx context.Context, id int32) (Product, error) {
-	row := q.db.QueryRowContext(ctx, getProduct, id)
+func (q *Queries) GetProductByID(ctx context.Context, id int32) (Product, error) {
+	row := q.db.QueryRowContext(ctx, getProductByID, id)
 	var i Product
 	err := row.Scan(
 		&i.ID,
-		&i.ProductName,
-		&i.ProductDescription,
+		&i.WebsiteID,
+		&i.CategoryID,
+		&i.Title,
 		&i.Price,
-		&i.IsActive,
+		&i.Link,
+		&i.Image,
+		&i.Description,
+		&i.Status,
 		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
-const listProducts = `-- name: ListProducts :many
-SELECT id, product_name, product_description, price, is_active, created_at FROM products ORDER BY created_at DESC
+const listActiveProductsByCategoryID = `-- name: ListActiveProductsByCategoryID :many
+SELECT id, website_id, category_id, title, price, link, image, description, status, created_at, updated_at
+FROM products
+WHERE category_id = $1 AND status = 'active'
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3
 `
 
-func (q *Queries) ListProducts(ctx context.Context) ([]Product, error) {
-	rows, err := q.db.QueryContext(ctx, listProducts)
+type ListActiveProductsByCategoryIDParams struct {
+	CategoryID int32
+	Limit      int64
+	Offset     int64
+}
+
+func (q *Queries) ListActiveProductsByCategoryID(ctx context.Context, arg ListActiveProductsByCategoryIDParams) ([]Product, error) {
+	rows, err := q.db.QueryContext(ctx, listActiveProductsByCategoryID, arg.CategoryID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -83,11 +115,356 @@ func (q *Queries) ListProducts(ctx context.Context) ([]Product, error) {
 		var i Product
 		if err := rows.Scan(
 			&i.ID,
-			&i.ProductName,
-			&i.ProductDescription,
+			&i.WebsiteID,
+			&i.CategoryID,
+			&i.Title,
 			&i.Price,
-			&i.IsActive,
+			&i.Link,
+			&i.Image,
+			&i.Description,
+			&i.Status,
 			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listActiveProductsByStatus = `-- name: ListActiveProductsByStatus :many
+SELECT id, website_id, category_id, title, price, link, image, description, status, created_at, updated_at
+FROM products
+WHERE status = $1 AND status = 'active'
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type ListActiveProductsByStatusParams struct {
+	Status EntityStatus
+	Limit  int64
+	Offset int64
+}
+
+func (q *Queries) ListActiveProductsByStatus(ctx context.Context, arg ListActiveProductsByStatusParams) ([]Product, error) {
+	rows, err := q.db.QueryContext(ctx, listActiveProductsByStatus, arg.Status, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Product
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.WebsiteID,
+			&i.CategoryID,
+			&i.Title,
+			&i.Price,
+			&i.Link,
+			&i.Image,
+			&i.Description,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listActiveProductsByWebsiteID = `-- name: ListActiveProductsByWebsiteID :many
+SELECT id, website_id, category_id, title, price, link, image, description, status, created_at, updated_at
+FROM products
+WHERE website_id = $1 AND status = 'active'
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type ListActiveProductsByWebsiteIDParams struct {
+	WebsiteID int32
+	Limit     int64
+	Offset    int64
+}
+
+func (q *Queries) ListActiveProductsByWebsiteID(ctx context.Context, arg ListActiveProductsByWebsiteIDParams) ([]Product, error) {
+	rows, err := q.db.QueryContext(ctx, listActiveProductsByWebsiteID, arg.WebsiteID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Product
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.WebsiteID,
+			&i.CategoryID,
+			&i.Title,
+			&i.Price,
+			&i.Link,
+			&i.Image,
+			&i.Description,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAllActiveProducts = `-- name: ListAllActiveProducts :many
+SELECT id, website_id, category_id, title, price, link, image, description, status, created_at, updated_at
+FROM products
+WHERE status = 'active'
+ORDER BY created_at DESC
+LIMIT $1 OFFSET $2
+`
+
+type ListAllActiveProductsParams struct {
+	Limit  int64
+	Offset int64
+}
+
+func (q *Queries) ListAllActiveProducts(ctx context.Context, arg ListAllActiveProductsParams) ([]Product, error) {
+	rows, err := q.db.QueryContext(ctx, listAllActiveProducts, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Product
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.WebsiteID,
+			&i.CategoryID,
+			&i.Title,
+			&i.Price,
+			&i.Link,
+			&i.Image,
+			&i.Description,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAllProducts = `-- name: ListAllProducts :many
+SELECT id, website_id, category_id, title, price, link, image, description, status, created_at, updated_at
+FROM products
+ORDER BY created_at DESC
+LIMIT $1 OFFSET $2
+`
+
+type ListAllProductsParams struct {
+	Limit  int64
+	Offset int64
+}
+
+func (q *Queries) ListAllProducts(ctx context.Context, arg ListAllProductsParams) ([]Product, error) {
+	rows, err := q.db.QueryContext(ctx, listAllProducts, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Product
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.WebsiteID,
+			&i.CategoryID,
+			&i.Title,
+			&i.Price,
+			&i.Link,
+			&i.Image,
+			&i.Description,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listProductsByCategoryID = `-- name: ListProductsByCategoryID :many
+SELECT id, website_id, category_id, title, price, link, image, description, status, created_at, updated_at
+FROM products
+WHERE category_id = $1 
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type ListProductsByCategoryIDParams struct {
+	CategoryID int32
+	Limit      int64
+	Offset     int64
+}
+
+func (q *Queries) ListProductsByCategoryID(ctx context.Context, arg ListProductsByCategoryIDParams) ([]Product, error) {
+	rows, err := q.db.QueryContext(ctx, listProductsByCategoryID, arg.CategoryID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Product
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.WebsiteID,
+			&i.CategoryID,
+			&i.Title,
+			&i.Price,
+			&i.Link,
+			&i.Image,
+			&i.Description,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listProductsByStatus = `-- name: ListProductsByStatus :many
+SELECT id, website_id, category_id, title, price, link, image, description, status, created_at, updated_at
+FROM products
+WHERE status = $1
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type ListProductsByStatusParams struct {
+	Status EntityStatus
+	Limit  int64
+	Offset int64
+}
+
+func (q *Queries) ListProductsByStatus(ctx context.Context, arg ListProductsByStatusParams) ([]Product, error) {
+	rows, err := q.db.QueryContext(ctx, listProductsByStatus, arg.Status, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Product
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.WebsiteID,
+			&i.CategoryID,
+			&i.Title,
+			&i.Price,
+			&i.Link,
+			&i.Image,
+			&i.Description,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listProductsByWebsiteID = `-- name: ListProductsByWebsiteID :many
+SELECT id, website_id, category_id, title, price, link, image, description, status, created_at, updated_at
+FROM products
+WHERE website_id = $1
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type ListProductsByWebsiteIDParams struct {
+	WebsiteID int32
+	Limit     int64
+	Offset    int64
+}
+
+func (q *Queries) ListProductsByWebsiteID(ctx context.Context, arg ListProductsByWebsiteIDParams) ([]Product, error) {
+	rows, err := q.db.QueryContext(ctx, listProductsByWebsiteID, arg.WebsiteID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Product
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.WebsiteID,
+			&i.CategoryID,
+			&i.Title,
+			&i.Price,
+			&i.Link,
+			&i.Image,
+			&i.Description,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -104,35 +481,48 @@ func (q *Queries) ListProducts(ctx context.Context) ([]Product, error) {
 
 const updateProduct = `-- name: UpdateProduct :one
 UPDATE products
-SET product_name = $2, product_description = $3, price = $4, is_active = $5
-WHERE id = $1
-RETURNING id, product_name, product_description, price, is_active, created_at
+SET website_id = $2, category_id = $3, title = $4, price = $5, link = $6, image = $7, description = $8, status = $9, updated_at = CURRENT_TIMESTAMP
+WHERE id = $1   
+RETURNING id, website_id, category_id, title, price, link, image, description, status, created_at, updated_at
 `
 
 type UpdateProductParams struct {
-	ID                 int32
-	ProductName        string
-	ProductDescription string
-	Price              int64
-	IsActive           bool
+	ID          int32
+	WebsiteID   int32
+	CategoryID  int32
+	Title       string
+	Price       int64
+	Link        string
+	Image       sql.NullString
+	Description sql.NullString
+	Status      EntityStatus
 }
 
 func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (Product, error) {
 	row := q.db.QueryRowContext(ctx, updateProduct,
 		arg.ID,
-		arg.ProductName,
-		arg.ProductDescription,
+		arg.WebsiteID,
+		arg.CategoryID,
+		arg.Title,
 		arg.Price,
-		arg.IsActive,
+		arg.Link,
+		arg.Image,
+		arg.Description,
+		arg.Status,
 	)
 	var i Product
 	err := row.Scan(
 		&i.ID,
-		&i.ProductName,
-		&i.ProductDescription,
+		&i.WebsiteID,
+		&i.CategoryID,
+		&i.Title,
 		&i.Price,
-		&i.IsActive,
+		&i.Link,
+		&i.Image,
+		&i.Description,
+		&i.Status,
 		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }

@@ -3,9 +3,12 @@ package server
 import (
 	"fmt"
 	"go-wordpress/docs"
+	categoryController "go-wordpress/internal/category/controller"
 	"go-wordpress/internal/config"
+	configController "go-wordpress/internal/configs/controller"
 	"go-wordpress/internal/health"
-	"go-wordpress/internal/product/controller"
+	productController "go-wordpress/internal/product/controller"
+	websiteController "go-wordpress/internal/website/controller"
 	"log"
 	"net/http"
 
@@ -18,17 +21,25 @@ import (
 func RegisterRoutes(engine *gin.Engine,
 	health *health.Health,
 	cfg *config.Config,
-	adminProduct *controller.AdminProduct,
-	clientProduct *controller.ClientProduct) {
+	adminProduct *productController.AdminProduct,
+	adminWebsite *websiteController.AdminWebsite,
+	adminCategory *categoryController.AdminCategory,
+	adminConfig *configController.AdminConfig) {
 	log.Println("🚀 Registering routes...")
 	//health
 	engine.GET("/health", health.Handle)
 	//Admin Product routes
 	adminGroup := engine.Group("/api/v1/admin/products")
 	adminProduct.RegisterRoutes(adminGroup, cfg)
-	//Client Product routes
-	clientGroup := engine.Group("/api/v1/products")
-	clientProduct.RegisterRoutes(clientGroup)
+	// Admin Website routes
+	adminWebsiteGroup := engine.Group("/api/v1/admin/websites")
+	adminWebsite.RegisterRoutes(adminWebsiteGroup, cfg)
+	// Admin Category routes
+	adminCategoryGroup := engine.Group("/api/v1/admin/categories")
+	adminCategory.RegisterRoutes(adminCategoryGroup, cfg)
+	// Admin Config routes
+	adminConfigGroup := engine.Group("/api/v1/admin/configs")
+	adminConfig.RegisterRoutes(adminConfigGroup, cfg)
 	// Swagger
 	docs.SwaggerInfo.Title = "My API"
 	docs.SwaggerInfo.Version = "1.0"

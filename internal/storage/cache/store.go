@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"go-wordpress/internal/config"
 	"time"
 
@@ -49,4 +50,17 @@ func (r *Store) Delete(ctx context.Context, key string) error {
 func (r *Store) Exists(ctx context.Context, key string) (bool, error) {
 	count, err := r.client.Exists(ctx, key).Result()
 	return count > 0, err
+}
+
+func (r *Store) deleteByPattern(ctx context.Context, pattern string) error {
+	iter := r.client.Scan(ctx, 0, pattern, 0).Iterator()
+	for iter.Next(ctx) {
+		if err := r.client.Del(ctx, iter.Val()).Err(); err != nil {
+			return fmt.Errorf("failed to delete key %s: %w", iter.Val(), err)
+		}
+	}
+	if err := iter.Err(); err != nil {
+		return fmt.Errorf("error during scan: %w", err)
+	}
+	return nil
 }
