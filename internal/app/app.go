@@ -37,6 +37,7 @@ func NewApp() *fx.App {
 			server.CreateGRPCServer,
 			//db
 			migrate.NewRunner, // migration runner
+			migrate.NewSeeder, // seeder for initial data
 			sqlc.New,
 			//cache
 			cache.NewClient,
@@ -70,6 +71,7 @@ func NewApp() *fx.App {
 			server.StartGRPCServer,
 			//migration
 			migrate.RunMigrations,
+			migrate.RunSeeder,
 			//life cycle
 			logger.RegisterLoggerLifecycle,
 			server.GRPCLifeCycle,
