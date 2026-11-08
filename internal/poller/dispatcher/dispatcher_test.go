@@ -126,3 +126,41 @@ func TestDispatcher_Stop(t *testing.T) {
 		t.Fatal("expected error or panic prevention after Stop")
 	}
 }
+
+type instantJob struct{}
+
+func (instantJob) ID() string                    { return "instant" }
+func (instantJob) Service() string               { return "email" }
+func (instantJob) Execute(context.Context) error { return nil }
+
+func TestDispatcher_StopDuringConcurrentDispatch(t *testing.T) {
+	d := New()
+	d.Register("email", 1, 1)
+	d.Start()
+
+	var senders sync.WaitGroup
+	for i := 0; i < 8; i++ {
+		senders.Add(1)
+		go func() {
+			defer senders.Done()
+			for d.Dispatch(instantJob{}) == nil {
+			}
+		}()
+	}
+
+	time.Sleep(20 * time.Millisecond)
+	d.Stop()
+	d.Stop() // must be safe to call twice
+
+	finished := make(chan struct{})
+	go func() {
+		senders.Wait()
+		close(finished)
+	}()
+
+	select {
+	case <-finished:
+	case <-time.After(5 * time.Second):
+		t.Fatal("senders did not return after Stop")
+	}
+}

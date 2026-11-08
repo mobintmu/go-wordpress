@@ -40,8 +40,6 @@ func (m *mockJob) Service() string {
 }
 
 func (m *mockJob) Execute(ctx context.Context) error {
-	fmt.Println("wait for 3 seconds before executing job m : ", m.id)
-	time.Sleep(3 * time.Second)
 	m.mu.Lock()
 	m.executed = true
 	m.mu.Unlock()
@@ -82,6 +80,8 @@ func TestSimpleWorker_StopPreventsExecution(t *testing.T) {
 
 	ctx := context.Background()
 	worker.Start(ctx)
+	// Let the worker reach its select, so cancellation wins over the queued job.
+	time.Sleep(50 * time.Millisecond)
 	worker.Stop()
 
 	j := newMockJob(1, 1)

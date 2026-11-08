@@ -18,9 +18,10 @@ RETURNING id, name, domain, status, created_at, updated_at;
 DELETE FROM websites
 WHERE id = $1;  
 
--- name: ListWebsites :many
+-- name: ListActiveWebsites :many
 SELECT id, name, domain, status, created_at, updated_at
 FROM websites
+WHERE status = 'active'
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2;
 

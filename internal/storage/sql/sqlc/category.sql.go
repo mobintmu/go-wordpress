@@ -369,3 +369,39 @@ func (q *Queries) UpdateCategory(ctx context.Context, arg UpdateCategoryParams) 
 	)
 	return i, err
 }
+
+const upsertCategory = `-- name: UpsertCategory :one
+INSERT INTO categories (website_id, name, link, status)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT (link) DO UPDATE
+SET name       = EXCLUDED.name,
+    updated_at = CURRENT_TIMESTAMP
+RETURNING id, website_id, name, link, status, created_at, updated_at
+`
+
+type UpsertCategoryParams struct {
+	WebsiteID int32
+	Name      string
+	Link      string
+	Status    EntityStatus
+}
+
+func (q *Queries) UpsertCategory(ctx context.Context, arg UpsertCategoryParams) (Category, error) {
+	row := q.db.QueryRowContext(ctx, upsertCategory,
+		arg.WebsiteID,
+		arg.Name,
+		arg.Link,
+		arg.Status,
+	)
+	var i Category
+	err := row.Scan(
+		&i.ID,
+		&i.WebsiteID,
+		&i.Name,
+		&i.Link,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}

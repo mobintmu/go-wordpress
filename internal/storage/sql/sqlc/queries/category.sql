@@ -14,6 +14,14 @@ SET website_id = $2, name = $3, link = $4, status = $5, updated_at = CURRENT_TIM
 WHERE id = $1   
 RETURNING id, website_id, name, link, status, created_at, updated_at;
 
+-- name: UpsertCategory :one
+INSERT INTO categories (website_id, name, link, status)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT (link) DO UPDATE
+SET name       = EXCLUDED.name,
+    updated_at = CURRENT_TIMESTAMP
+RETURNING id, website_id, name, link, status, created_at, updated_at;
+
 -- name: DeleteCategory :exec
 DELETE FROM categories
 WHERE id = $1;  

@@ -27,7 +27,8 @@ type Service struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	mu sync.RWMutex
+	mu      sync.RWMutex
+	stopped bool
 
 	queues  map[string]chan job.Job
 	workers map[string][]worker.Worker
@@ -81,17 +82,16 @@ func (d *Service) Start() {
 }
 
 func (d *Service) Dispatch(j job.Job) error {
+	// Hold the read lock through the send so Stop cannot close the queue mid-send.
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
 	// Prevent dispatch after stop
-	select {
-	case <-d.ctx.Done():
+	if d.ctx.Err() != nil {
 		return context.Canceled
-	default:
 	}
 
-	d.mu.RLock()
 	queue, ok := d.queues[j.Service()]
-	d.mu.RUnlock()
-
 	if !ok {
 		return ErrServiceNotRegistered
 	}
@@ -106,10 +106,17 @@ func (d *Service) Dispatch(j job.Job) error {
 }
 
 func (d *Service) Stop() {
+	// Cancel before locking: it wakes any Dispatch blocked on a full queue,
+	// which then releases the read lock this Stop is waiting for.
 	d.cancel()
 
-	d.mu.RLock()
-	defer d.mu.RUnlock()
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	if d.stopped {
+		return
+	}
+	d.stopped = true
 
 	for _, q := range d.queues {
 		close(q)

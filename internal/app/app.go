@@ -24,8 +24,8 @@ import (
 	"go.uber.org/fx"
 )
 
-func NewApp() *fx.App {
-	return fx.New(
+func AppOptions() fx.Option {
+	return fx.Options(
 		fx.Provide(
 			logger.NewLogger,
 			config.NewConfig,
@@ -77,4 +77,8 @@ func NewApp() *fx.App {
 			server.GRPCLifeCycle,
 		),
 	)
+}
+
+func NewApp() *fx.App {
+	return fx.New(AppOptions())
 }

@@ -32,6 +32,15 @@ WHERE website_id = $1 AND status = 'active'
 ORDER BY created_at DESC    
 LIMIT $2 OFFSET $3;
 
+
+-- name: ListActiveConfigsByWebsites :many
+SELECT id, website_id, key, value, created_at, updated_at
+FROM configs
+WHERE website_id = ANY(sqlc.arg(website_ids)::int[])
+  AND status = 'active'
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3;
+
 -- name: ListConfigsByStatus :many
 SELECT id, website_id, key, value, created_at, updated_at
 FROM configs

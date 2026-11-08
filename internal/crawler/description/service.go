@@ -1,7 +1,8 @@
 package description
 
 import (
-	"go-wordpress/internal/crawler/website"
+	"fmt"
+	"go-wordpress/internal/crawler/domain"
 	"strconv"
 	"strings"
 	"sync"
@@ -18,7 +19,7 @@ type Service struct {
 	sleepBatch time.Duration
 }
 
-func New(logger *zap.Logger, web *website.Service) *Service {
+func New(logger *zap.Logger) *Service {
 	return &Service{
 		logger:     logger,
 		mu:         sync.Mutex{},
@@ -27,45 +28,78 @@ func New(logger *zap.Logger, web *website.Service) *Service {
 	}
 }
 
-func (s *Service) FetchDescriptions(web *website.Service) (w *website.Service, err error) {
-	for categoryIndex, cat := range web.Categories {
-		// Get valid products
-		var validProducts []int
-		for i := range cat.Products {
-			if web.Categories[categoryIndex].Products[i].Link != "" {
-				validProducts = append(validProducts, i)
-			}
-		}
-
-		s.logger.Info("Category processing started",
-			zap.String("category", web.Categories[categoryIndex].Name),
-			zap.Int("total_products", len(validProducts)),
-		)
-
-		// Process products in batches
-		err := s.processBatches(web, categoryIndex, validProducts)
-		if err != nil {
-			s.logger.Error("Failed to process batches",
-				zap.String("category", web.Categories[categoryIndex].Name),
-				zap.Error(err),
-			)
-		}
+func (s *Service) validateWeb(web *domain.Website) error {
+	if web == nil {
+		return fmt.Errorf("website cannot be nil")
 	}
-	return web, nil
+	if web.Domain == "" {
+		return fmt.Errorf("website domain cannot be empty")
+	}
+	if len(web.Categories) == 0 {
+		return fmt.Errorf("website must have at least 1 category for description fetching")
+	}
+	if web.CFG.StartURL == "" {
+		return fmt.Errorf("website start URL cannot be empty")
+	}
+	if web.CFG.ProductDetail == nil || web.CFG.ProductDetail.Description.Selector == "" {
+		return fmt.Errorf("product description selector cannot be empty")
+	}
+	return nil
 }
 
-func (s *Service) processBatches(web *website.Service, categoryIndex int, validProducts []int) error {
-	for batchStart := 0; batchStart < len(validProducts); batchStart += s.batchSize {
+func (s *Service) removeInvalidProducts(web *domain.Website) {
+	for i, cat := range web.Categories {
+		var validProducts []domain.Product
+		for _, prod := range cat.Products {
+			if prod.Link != "" {
+				validProducts = append(validProducts, prod)
+			}
+		}
+		web.Categories[i].Products = validProducts
+	}
+}
+
+// FetchDescriptions fetches product descriptions for all products in every category of the website. It processes products in batches to control concurrency and avoid overwhelming the target server.
+func (s *Service) FetchDescriptions(web *domain.Website) error {
+	err := s.validateWeb(web)
+	if err != nil {
+		s.logger.Error("website validation failed", zap.Error(err))
+		return err
+	}
+	s.removeInvalidProducts(web)
+
+	// Process products in batches
+	for catIndex := range web.Categories {
+		if err := s.processBatches(web, catIndex); err != nil {
+			s.logger.Error("Failed to process batches",
+				zap.String("category", web.Categories[catIndex].Name),
+				zap.Error(err),
+			)
+			return fmt.Errorf("process batches for category %q: %w", web.Categories[catIndex].Name, err)
+		}
+	}
+	return nil
+}
+
+func (s *Service) processBatches(web *domain.Website, catIndex int) error {
+	err := s.validateWeb(web)
+	if err != nil {
+		s.logger.Error("website validation failed", zap.Error(err))
+		return err
+	}
+	category := &web.Categories[catIndex]
+	products := category.Products
+	for batchStart := 0; batchStart < len(products); batchStart += s.batchSize {
 		batchEnd := batchStart + s.batchSize
-		if batchEnd > len(validProducts) {
-			batchEnd = len(validProducts)
+		if batchEnd > len(products) {
+			batchEnd = len(products)
 		}
 
 		s.logger.Info("Processing batch",
-			zap.String("category", web.Categories[categoryIndex].Name),
+			zap.String("category", category.Name),
 			zap.Int("batch_start", batchStart),
 			zap.Int("batch_end", batchEnd),
-			zap.Int("total_products", len(validProducts)),
+			zap.Int("total_products", len(products)),
 		)
 
 		c := colly.NewCollector(
@@ -84,16 +118,13 @@ func (s *Service) processBatches(web *website.Service, categoryIndex int, validP
 
 		// Extract description from product page
 		c.OnHTML(
-			web.ProductDetail.Description.Selector,
+			web.CFG.ProductDetail.Description.Selector,
 			func(e *colly.HTMLElement) {
 				desc := strings.TrimSpace(e.Text)
 
 				// Get context data
 				idxAny := e.Request.Ctx.Get("index")
-				catIdxAny := e.Request.Ctx.Get("categoryIndex")
-
 				idx, _ := strconv.Atoi(idxAny)
-				catIdx, _ := strconv.Atoi(catIdxAny)
 
 				if desc == "" {
 					s.logger.Warn("empty description", zap.String("url", e.Request.URL.String()))
@@ -101,7 +132,7 @@ func (s *Service) processBatches(web *website.Service, categoryIndex int, validP
 				}
 
 				s.mu.Lock()
-				web.Categories[catIdx].Products[idx].Description = desc
+				category.Products[idx].Description = desc
 				s.mu.Unlock()
 			},
 		)
@@ -117,9 +148,9 @@ func (s *Service) processBatches(web *website.Service, categoryIndex int, validP
 		var wg sync.WaitGroup
 		semaphore := make(chan struct{}, 4) // Max 4 concurrent requests
 
-		for _, productIdx := range validProducts[batchStart:batchEnd] {
+		for productIndex := batchStart; productIndex < batchEnd; productIndex++ {
 			wg.Add(1)
-			go func(productIndex int, categoryIdx int) {
+			go func(productIndex int) {
 				defer wg.Done()
 
 				semaphore <- struct{}{}        // Acquire slot
@@ -127,33 +158,32 @@ func (s *Service) processBatches(web *website.Service, categoryIndex int, validP
 
 				ctx := colly.NewContext()
 				ctx.Put("index", strconv.Itoa(productIndex))
-				ctx.Put("categoryIndex", strconv.Itoa(categoryIdx))
 
 				if err := c.Request(
 					"GET",
-					web.Categories[categoryIdx].Products[productIndex].Link,
+					category.Products[productIndex].Link,
 					nil,
 					ctx,
 					nil,
 				); err != nil {
 					s.logger.Warn(
 						"Failed to visit product",
-						zap.String("url", web.Categories[categoryIdx].Products[productIndex].Link),
+						zap.String("url", category.Products[productIndex].Link),
 						zap.Error(err),
 					)
 				} else {
 					s.logger.Info("Visiting product page",
-						zap.String("url", web.Categories[categoryIdx].Products[productIndex].Link),
+						zap.String("url", category.Products[productIndex].Link),
 					)
 				}
-			}(productIdx, categoryIndex)
+			}(productIndex)
 		}
 
 		wg.Wait()
 		c.Wait() // Wait for all async jobs to complete
 
 		s.logger.Info("Batch completed",
-			zap.String("category", web.Categories[categoryIndex].Name),
+			zap.String("category", category.Name),
 			zap.Int("batch_start", batchStart),
 			zap.Int("batch_end", batchEnd),
 		)

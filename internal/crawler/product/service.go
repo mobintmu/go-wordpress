@@ -1,10 +1,10 @@
 package product
 
 import (
-	"go-wordpress/internal/crawler/cleanup"
+	"fmt"
 	"go-wordpress/internal/crawler/description"
 	"go-wordpress/internal/crawler/domain"
-	"go-wordpress/internal/crawler/website"
+	"go-wordpress/internal/storage/sql/sqlc"
 	"sync"
 	"time"
 
@@ -13,19 +13,44 @@ import (
 )
 
 type Service struct {
-	web    *website.Service
 	logger *zap.Logger
 	mu     sync.Mutex
 	des    *description.Service
+	web    *domain.Website
+	query  *sqlc.Queries
 }
 
-func New(logger *zap.Logger, web *website.Service) *Service {
-	return &Service{
+func New(logger *zap.Logger, query *sqlc.Queries, web *domain.Website) (*Service, error) {
+	s := &Service{
 		logger: logger,
-		web:    web,
 		mu:     sync.Mutex{},
-		des:    description.New(logger, web),
+		des:    description.New(logger),
+		web:    web,
+		query:  query,
 	}
+	if s.validateWeb(web) != nil {
+		return nil, fmt.Errorf("invalid website config: %w", s.validateWeb(web))
+	}
+	return s, nil
+}
+
+func (s *Service) validateWeb(web *domain.Website) error {
+	if web == nil {
+		return fmt.Errorf("website cannot be nil")
+	}
+	if web.Domain == "" {
+		return fmt.Errorf("website domain cannot be empty")
+	}
+	if len(web.Categories) == 0 {
+		return fmt.Errorf("website must have at least 1 category; load or discover categories first")
+	}
+	if web.CFG.StartURL == "" {
+		return fmt.Errorf("website start URL cannot be empty")
+	}
+	if web.CFG.ProductDetail == nil || web.CFG.ProductDetail.Description.Selector == "" {
+		return fmt.Errorf("product description selector cannot be empty")
+	}
+	return nil
 }
 
 func (s *Service) Run() error {
@@ -35,14 +60,13 @@ func (s *Service) Run() error {
 		return err
 	}
 
-	web, err := s.des.FetchDescriptions(s.web)
+	err := s.des.FetchDescriptions(s.web)
 	if err != nil {
 		s.logger.Error("FetchDescriptions failed", zap.Error(err))
 		return err
 	}
-	s.web = web
 
-	cleanup.Cleans(s.web.Categories)
+	s.web.Cleans()
 	return nil
 }
 
@@ -64,12 +88,12 @@ func (s *Service) List() error {
 		products := []domain.Product{}
 
 		// Use configured selectors from web.ProductList
-		c.OnHTML(s.web.ProductList.Item, func(e *colly.HTMLElement) {
+		c.OnHTML(s.web.CFG.ProductList.Item, func(e *colly.HTMLElement) {
 			p := domain.Product{
-				Title: e.ChildText(s.web.ProductList.Fields["title"].Selector),
-				Price: e.ChildText(s.web.ProductList.Fields["price"].Selector),
-				Link:  e.ChildAttr(s.web.ProductList.Fields["link"].Selector, s.web.ProductList.Fields["link"].Attr),
-				Image: e.ChildAttr(s.web.ProductList.Fields["image"].Selector, s.web.ProductList.Fields["image"].Attr),
+				Title: e.ChildText(s.web.CFG.ProductList.Fields["title"].Selector),
+				Price: e.ChildText(s.web.CFG.ProductList.Fields["price"].Selector),
+				Link:  e.ChildAttr(s.web.CFG.ProductList.Fields["link"].Selector, s.web.CFG.ProductList.Fields["link"].Attr),
+				Image: e.ChildAttr(s.web.CFG.ProductList.Fields["image"].Selector, s.web.CFG.ProductList.Fields["image"].Attr),
 			}
 
 			if p.Link != "" {
@@ -82,12 +106,14 @@ func (s *Service) List() error {
 			}
 		})
 
-		// Handle Pagination
-		c.OnHTML(s.web.Pagination.Next, func(e *colly.HTMLElement) {
-			nextPage := e.Attr("href")
-			s.logger.Info("Visiting next page", zap.String("url", nextPage))
-			e.Request.Visit(nextPage)
-		})
+		// Handle Pagination (optional: single-page catalogs have none)
+		if s.web.CFG.Pagination != nil && s.web.CFG.Pagination.Next != "" {
+			c.OnHTML(s.web.CFG.Pagination.Next, func(e *colly.HTMLElement) {
+				nextPage := e.Attr("href")
+				s.logger.Info("Visiting next page", zap.String("url", nextPage))
+				e.Request.Visit(nextPage)
+			})
+		}
 
 		// 4. Handle errors for individual requests
 		c.OnError(func(r *colly.Response, err error) {
@@ -115,5 +141,3 @@ func (s *Service) List() error {
 	}
 	return nil
 }
-
-func (s *Service) CleanedProducts() []domain.Category { return s.web.Categories }

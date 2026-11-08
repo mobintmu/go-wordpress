@@ -63,20 +63,21 @@ func (q *Queries) GetWebsiteByID(ctx context.Context, id int32) (Website, error)
 	return i, err
 }
 
-const listAllWebsites = `-- name: ListAllWebsites :many
+const listActiveWebsites = `-- name: ListActiveWebsites :many
 SELECT id, name, domain, status, created_at, updated_at
 FROM websites
+WHERE status = 'active'
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2
 `
 
-type ListAllWebsitesParams struct {
+type ListActiveWebsitesParams struct {
 	Limit  int64
 	Offset int64
 }
 
-func (q *Queries) ListAllWebsites(ctx context.Context, arg ListAllWebsitesParams) ([]Website, error) {
-	rows, err := q.db.QueryContext(ctx, listAllWebsites, arg.Limit, arg.Offset)
+func (q *Queries) ListActiveWebsites(ctx context.Context, arg ListActiveWebsitesParams) ([]Website, error) {
+	rows, err := q.db.QueryContext(ctx, listActiveWebsites, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -105,20 +106,20 @@ func (q *Queries) ListAllWebsites(ctx context.Context, arg ListAllWebsitesParams
 	return items, nil
 }
 
-const listWebsites = `-- name: ListWebsites :many
+const listAllWebsites = `-- name: ListAllWebsites :many
 SELECT id, name, domain, status, created_at, updated_at
 FROM websites
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2
 `
 
-type ListWebsitesParams struct {
+type ListAllWebsitesParams struct {
 	Limit  int64
 	Offset int64
 }
 
-func (q *Queries) ListWebsites(ctx context.Context, arg ListWebsitesParams) ([]Website, error) {
-	rows, err := q.db.QueryContext(ctx, listWebsites, arg.Limit, arg.Offset)
+func (q *Queries) ListAllWebsites(ctx context.Context, arg ListAllWebsitesParams) ([]Website, error) {
+	rows, err := q.db.QueryContext(ctx, listAllWebsites, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

@@ -1,5 +1,28 @@
 package domain
 
+const (
+	DefaultLimit  = 1000
+	DefaultOffset = 0
+
+	// ScraperConfigKey is the configs.key of the row holding a website's CFG.
+	ScraperConfigKey = "scraper_config"
+)
+
+type Website struct {
+	ID         int32      `json:"id"`
+	Name       string     `json:"name"`
+	Domain     string     `json:"domain"`
+	Categories []Category `json:"categories"`
+	CFG        CFG        `json:"cfg"`
+}
+
+type Category struct {
+	Name            string `json:"name"`
+	Link            string `json:"link"`
+	Products        []Product
+	CleanedProducts []ProductClean
+}
+
 type Product struct {
 	Title       string
 	Price       string
@@ -16,11 +39,11 @@ type ProductClean struct {
 	Description string
 }
 
-type Category struct {
-	Name            string
-	Link            string
-	Products        []Product
-	CleanedProducts []ProductClean
+type CFG struct {
+	StartURL      string               `json:"start_url"`
+	ProductList   ProductListConfig    `json:"product_list"`
+	Pagination    *PaginationConfig    `json:"pagination,omitempty"`
+	ProductDetail *ProductDetailConfig `json:"product_detail"`
 }
 
 type FieldConfig struct {
@@ -39,13 +62,4 @@ type PaginationConfig struct {
 
 type ProductDetailConfig struct {
 	Description FieldConfig `json:"description"`
-}
-
-type Websites struct {
-	Websites []Website `json:"websites"`
-}
-
-type Website struct {
-	Name   string `json:"name"`
-	Domain string `json:"domain"`
 }

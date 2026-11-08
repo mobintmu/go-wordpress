@@ -9,6 +9,8 @@ import (
 	"context"
 	"encoding/json"
 	"time"
+
+	"github.com/lib/pq"
 )
 
 const createConfig = `-- name: CreateConfig :one
@@ -170,6 +172,60 @@ func (q *Queries) ListActiveConfigsByWebsiteID(ctx context.Context, arg ListActi
 	var items []ListActiveConfigsByWebsiteIDRow
 	for rows.Next() {
 		var i ListActiveConfigsByWebsiteIDRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.WebsiteID,
+			&i.Key,
+			&i.Value,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listActiveConfigsByWebsites = `-- name: ListActiveConfigsByWebsites :many
+SELECT id, website_id, key, value, created_at, updated_at
+FROM configs
+WHERE website_id = ANY($1::int[])
+  AND status = 'active'
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type ListActiveConfigsByWebsitesParams struct {
+	WebsiteIds []int32
+	Limit      int64
+	Offset     int64
+}
+
+type ListActiveConfigsByWebsitesRow struct {
+	ID        int32
+	WebsiteID int32
+	Key       string
+	Value     json.RawMessage
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+func (q *Queries) ListActiveConfigsByWebsites(ctx context.Context, arg ListActiveConfigsByWebsitesParams) ([]ListActiveConfigsByWebsitesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listActiveConfigsByWebsites, pq.Array(arg.WebsiteIds), arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListActiveConfigsByWebsitesRow
+	for rows.Next() {
+		var i ListActiveConfigsByWebsitesRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.WebsiteID,

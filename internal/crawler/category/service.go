@@ -1,230 +1,218 @@
 package category
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
+	"go-wordpress/internal/crawler/domain"
+	"go-wordpress/internal/storage/sql/sqlc"
 	"net/url"
-	"os"
 	"strings"
 
 	"github.com/gocolly/colly/v2"
 	"go.uber.org/zap"
 )
 
-// Service helps find all categories on a website
 type Service struct {
-	logger     *zap.Logger
-	domain     string
-	startURL   string
-	Categories []Category
+	logger   *zap.Logger
+	domain   string
+	startURL string
+	query    *sqlc.Queries
+	web      *domain.Website
 }
 
-// Category represents a category found on the website
-type Category struct {
-	Name string `json:"name"`
-	Link string `json:"link"`
-}
-
-// New creates a new category discovery service
-func New(logger *zap.Logger, domain string, startURL string) *Service {
-	return &Service{
-		logger:     logger,
-		domain:     domain,
-		startURL:   startURL,
-		Categories: []Category{},
+func New(logger *zap.Logger, query *sqlc.Queries, web *domain.Website) (*Service, error) {
+	if web == nil {
+		return nil, fmt.Errorf("website cannot be nil")
 	}
+	if web.CFG.StartURL == "" {
+		return nil, fmt.Errorf("website start URL cannot be empty")
+	}
+	if web.Domain == "" {
+		return nil, fmt.Errorf("website domain cannot be empty")
+	}
+
+	return &Service{
+		logger:   logger,
+		domain:   web.Domain,
+		startURL: web.CFG.StartURL,
+		query:    query,
+		web:      web,
+	}, nil
 }
 
-// Discover finds all categories from the homepage
-func (cd *Service) Discover() error {
-
+func (s *Service) Discover() error {
 	c := colly.NewCollector(
-		colly.AllowedDomains(cd.domain),
+		colly.AllowedDomains(s.domain),
 	)
 
-	var categories []Category
+	categories := make(map[string]domain.Category)
 
-	// Helper function to clean text
-	cleanText := func(text string) string {
-		// strings.TrimSpace handles \n, \t, and whitespace from both ends
-		return strings.TrimSpace(text)
+	clean := func(t string) string { 
+		return strings.TrimSpace(t) 
 	}
 
-	// Try to find categories in common navigation structures
-	// Adjust selectors based on actual website structure
+	handleCategory := func(link, text string) {
+		if link == "" || text == "" {
+			return
+		}
+		if !isValidLink(link, s.domain) {
+			return
+		}
+		if _, exists := categories[link]; exists {
+			return
+		}
+
+		categories[link] = domain.Category{Name: text, Link: link}
+
+		s.logger.Debug("Found category",
+			zap.String("name", text),
+			zap.String("link", link),
+		)
+	}
+
+	// Generic nav links
 	c.OnHTML("nav a[href]", func(e *colly.HTMLElement) {
-		link := e.Attr("href")
-		text := cleanText(e.Text)
-
-		// Filter out irrelevant links
-		if link != "" && text != "" && isValidLink(link, cd.domain) {
-			categories = append(categories, Category{
-				Name: text,
-				Link: link,
-			})
-			cd.logger.Debug("Found category",
-				zap.String("name", text),
-				zap.String("link", link),
-			)
-		}
+		handleCategory(e.Request.AbsoluteURL(e.Attr("href")), clean(e.Text))
 	})
 
-	// Also try product category selectors
+	// WooCommerce category selectors
 	c.OnHTML("a.category-link, div.product-category a, .category-menu a", func(e *colly.HTMLElement) {
-		link := e.Attr("href")
-		text := cleanText(e.Text)
-
-		if link != "" && text != "" && isValidLink(link, cd.domain) {
-			// Check if already exists
-			exists := false
-			for _, cat := range categories {
-				if cat.Link == link {
-					exists = true
-					break
-				}
-			}
-
-			if !exists {
-				categories = append(categories, Category{
-					Name: text,
-					Link: link,
-				})
-				cd.logger.Debug("Found category",
-					zap.String("name", text),
-					zap.String("link", link),
-				)
-			}
-		}
+		handleCategory(e.Request.AbsoluteURL(e.Attr("href")), clean(e.Text))
 	})
 
-	// Add this before calling c.Visit()
 	c.OnError(func(r *colly.Response, err error) {
-		cd.logger.Warn("Request failed, skipping link",
+		s.logger.Warn("Request failed",
 			zap.String("url", r.Request.URL.String()),
 			zap.Int("status_code", r.StatusCode),
 			zap.Error(err),
 		)
 	})
 
-	err := c.Visit(cd.startURL)
-	if err != nil {
-		cd.logger.Warn("Failed to visit start URL", zap.Error(err))
+	if err := c.Visit(s.startURL); err != nil {
+		s.logger.Warn("Failed to visit start URL", zap.Error(err))
 		return err
 	}
 
-	cd.logger.Info("Category discovery completed",
-		zap.Int("count", len(categories)),
+	// Convert map → slice
+	s.web.Categories = make([]domain.Category, 0, len(categories))
+	for _, cat := range categories {
+		s.web.Categories = append(s.web.Categories, cat)
+	}
+
+	s.logger.Info("Category discovery completed",
+		zap.Int("count", len(s.web.Categories)),
 	)
 
-	cd.Categories = categories
 	return nil
 }
 
-// isValidLink checks if a link is valid and relevant
-func isValidLink(link string, baseDomain string) bool {
+func isValidLink(link, baseDomain string) bool {
 	u, err := url.Parse(link)
 	if err != nil {
 		return false
 	}
 
-	// 1. Domain Check (Removes different domains)
+	// External domain
 	if u.Host != "" && u.Host != baseDomain {
 		return false
 	}
 
 	path := strings.ToLower(u.Path)
-
-	// 2. Standard Exclusions
-	invalidPatterns := []string{
-		"/login", "/register", "/account", "/cart",
-		"/checkout", "/admin", "/blog", "/contact-us", "/about-us",
-		"/content",
+	if path == "" || path == "/" {
+		return false
 	}
-	for _, pattern := range invalidPatterns {
-		if strings.HasPrefix(path, pattern) {
+
+	invalid := []string{
+		"/login", "/register", "/account", "/cart",
+		"/checkout", "/admin", "/blog", "/contact-us",
+		"/about-us", "/content",
+	}
+	for _, p := range invalid {
+		if strings.HasPrefix(path, p) {
 			return false
 		}
 	}
 
-	// 3. Specific Exclusions for your request:
-
-	// Remove specific products but keep /product-category/
+	// Exclude product pages
 	if strings.HasPrefix(path, "/product/") {
 		return false
 	}
 
-	// Remove the Persian Registration Form link
-	// %d9%81%d8%b1%d9%85 is the encoded version of "فرم" (Form)
+	// Persian registration form
 	if strings.Contains(path, "%d9%81%d8%b1%d9%85") || strings.Contains(path, "فرم-ثبت-نام") {
 		return false
 	}
 
-	// 4. Schemes and Fragments
-	scheme := strings.ToLower(u.Scheme)
-	if scheme == "javascript" || scheme == "mailto" || scheme == "tel" || u.Fragment != "" {
+	// Schemes
+	switch strings.ToLower(u.Scheme) {
+	case "javascript", "mailto", "tel":
 		return false
 	}
 
-	return path != "" && path != "/"
+	if u.Fragment != "" {
+		return false
+	}
+
+	return true
 }
 
-// SaveToFile exports discovered categories to a configuration file
-func (cd *Service) SaveToFile() error {
-	filePath := fmt.Sprintf("config/%s_categories.json", cd.domain)
-	config := map[string]interface{}{
-		"domain":     cd.domain,
-		"categories": cd.Categories,
+func (s *Service) Save(ctx context.Context) error {
+	if s.web.ID == 0 {
+		return fmt.Errorf("website ID is not set")
+	}
+	if len(s.web.Categories) == 0 {
+		return fmt.Errorf("no categories to save for website ID %d", s.web.ID)
 	}
 
-	data, err := json.MarshalIndent(config, "", "  ")
-	if err != nil {
-		return err
+	for _, cat := range s.web.Categories {
+		_, err := s.query.UpsertCategory(ctx, sqlc.UpsertCategoryParams{
+			WebsiteID: s.web.ID,
+			Name:      cat.Name,
+			Link:      cat.Link,
+			Status:    sqlc.EntityStatusActive,
+		})
+		if err != nil {
+			s.logger.Error("Failed to upsert category",
+				zap.String("link", cat.Link),
+				zap.Error(err),
+			)
+			return err
+		}
 	}
-
-	err = os.WriteFile(filePath, data, 0o644)
-	if err != nil {
-		return err
-	}
-
-	cd.logger.Info("Categories saved to file",
-		zap.String("path", filePath),
-		zap.Int("count", len(cd.Categories)),
-	)
 
 	return nil
 }
 
-func (cd *Service) LoadFromFile() error {
-	filePath := fmt.Sprintf("config/%s_categories.json", cd.domain)
+func (s *Service) Load(ctx context.Context) error {
+	if s.web.ID == 0 {
+		return fmt.Errorf("website ID is not set")
+	}
 
-	data, err := os.ReadFile(filePath)
+	items, err := s.query.ListActiveCategoriesByWebsiteID(ctx, sqlc.ListActiveCategoriesByWebsiteIDParams{
+		WebsiteID: s.web.ID,
+		Limit:     domain.DefaultLimit,
+		Offset:    domain.DefaultOffset,
+	})
 	if err != nil {
+		s.logger.Error("Failed to list active categories", zap.Error(err))
 		return err
 	}
 
-	var config struct {
-		Domain     string     `json:"domain"`
-		Categories []Category `json:"categories"`
+	s.web.Categories = make([]domain.Category, len(items))
+	for i, item := range items {
+		s.web.Categories[i] = domain.Category{
+			Name: item.Name,
+			Link: item.Link,
+		}
 	}
-	err = json.Unmarshal(data, &config)
-	if err != nil {
-		return err
-	}
-
-	cd.Categories = config.Categories
-	cd.logger.Info("Categories loaded from file",
-		zap.String("path", filePath),
-		zap.Int("count", len(cd.Categories)),
-	)
 
 	return nil
 }
 
-// Print displays categories in a readable format
-func (cd *Service) Print(categories []Category) {
+func (s *Service) Print() {
 	fmt.Println("\n========== Discovered Categories ==========")
-	for i, cat := range categories {
+	for i, cat := range s.web.Categories {
 		fmt.Printf("%d. %s\n   URL: %s\n\n", i+1, cat.Name, cat.Link)
 	}
-	fmt.Printf("Total categories found: %d\n", len(categories))
+	fmt.Printf("Total categories found: %d\n", len(s.web.Categories))
 }

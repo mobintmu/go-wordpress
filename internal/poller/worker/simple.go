@@ -37,7 +37,11 @@ func (w *SimpleWorker) Start(ctx context.Context) {
 				log.Printf("[worker-%d] stopped\n", w.id)
 				return
 
-			case j := <-w.jobQueue:
+			case j, ok := <-w.jobQueue:
+				if !ok {
+					log.Printf("[worker-%d] job queue closed\n", w.id)
+					return
+				}
 				w.handleJob(ctx, j)
 			}
 		}

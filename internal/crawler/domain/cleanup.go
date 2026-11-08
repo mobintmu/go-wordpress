@@ -1,22 +1,20 @@
-package cleanup
+package domain
 
 import (
-	"go-wordpress/internal/crawler/domain"
 	"regexp"
 	"strconv"
 	"strings"
 )
 
-func Cleans(cats []domain.Category) {
-	for index, cat := range cats {
-		cleaned := Clean(&cat)
-		cats[index].CleanedProducts = cleaned
+func (web *Website) Cleans() {
+	for index := range web.Categories {
+		web.Categories[index].Clean()
 	}
 }
 
-func Clean(cat *domain.Category) []domain.ProductClean {
+func (cat *Category) Clean() {
 
-	cleaned := make([]domain.ProductClean, 0, len(cat.Products))
+	cleaned := make([]ProductClean, 0, len(cat.Products))
 
 	// regex to strip HTML tags
 	reTags := regexp.MustCompile(`<[^>]*>`)
@@ -35,11 +33,12 @@ func Clean(cat *domain.Category) []domain.ProductClean {
 		priceStr = strings.ReplaceAll(priceStr, ",", "")
 		priceStr = strings.TrimSpace(priceStr)
 
+		// Convert first: \D is ASCII-only and would delete Persian digits.
+		priceStr = convertPersianDigits(priceStr)
+
 		// keep only digits
 		reDigits := regexp.MustCompile(`\D`)
 		priceStr = reDigits.ReplaceAllString(priceStr, "")
-
-		priceStr = convertPersianDigits(priceStr)
 
 		var priceInt int
 		if priceStr != "" {
@@ -49,7 +48,7 @@ func Clean(cat *domain.Category) []domain.ProductClean {
 		}
 
 		// --- Build cleaned product ---
-		cleaned = append(cleaned, domain.ProductClean{
+		cleaned = append(cleaned, ProductClean{
 			Title:       title,
 			Price:       int64(priceInt),
 			Link:        p.Link,
@@ -58,7 +57,7 @@ func Clean(cat *domain.Category) []domain.ProductClean {
 		})
 	}
 
-	return cleaned
+	cat.CleanedProducts = cleaned
 }
 
 func convertPersianDigits(str string) string {
