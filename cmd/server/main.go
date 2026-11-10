@@ -1,3 +1,4 @@
+// Command server runs the stateless product extraction service.
 package main
 
 import (
@@ -5,12 +6,7 @@ import (
 	"go-wordpress/internal/config"
 )
 
-// @securityDefinitions.apikey BearerAuth
-// @in header
-// @name Authorization
-// @description Enter your JWT token in the format: Bearer <token>
 func main() {
 	config.LoadEnv()
-
 	app.NewApp().Run()
 }

@@ -1,84 +1,59 @@
 package app
 
 import (
-	categoryController "go-wordpress/internal/category/controller"
-	categoryService "go-wordpress/internal/category/service"
-	"go-wordpress/internal/config"
-	configsController "go-wordpress/internal/configs/controller"
-	configsService "go-wordpress/internal/configs/service"
-	"go-wordpress/internal/health"
-	"go-wordpress/internal/poller"
-	"go-wordpress/internal/poller/dispatcher"
-	productController "go-wordpress/internal/product/controller"
-	productService "go-wordpress/internal/product/service"
-	websiteController "go-wordpress/internal/website/controller"
-	websiteService "go-wordpress/internal/website/service"
+	"time"
 
+	"go-wordpress/internal/apikey"
+	"go-wordpress/internal/config"
+	"go-wordpress/internal/extract"
+	"go-wordpress/internal/fetch"
+	"go-wordpress/internal/health"
+	"go-wordpress/internal/limiter"
+	"go-wordpress/internal/metrics"
 	"go-wordpress/internal/server"
-	"go-wordpress/internal/storage/cache"
-	"go-wordpress/internal/storage/sql"
-	"go-wordpress/internal/storage/sql/migrate"
-	"go-wordpress/internal/storage/sql/sqlc"
+	"go-wordpress/internal/server/drain"
+	"go-wordpress/internal/siteconfig"
 	"go-wordpress/pkg/logger"
 
 	"go.uber.org/fx"
 )
 
+// AppOptions lists every component. Fx builds them and runs start and
+// stop hooks. The service has no database, cache, or background jobs.
 func AppOptions() fx.Option {
 	return fx.Options(
 		fx.Provide(
 			logger.NewLogger,
 			config.NewConfig,
-			sql.InitialDB,
-			//server
+			drain.New,
+			metrics.New,
+			limiter.New,
+			apikey.NewStore,
+			siteconfig.NewRegistry,
+			fetch.DefaultOptions,
+			fetch.New,
+			extract.NewService,
+			extract.NewHandler,
 			health.New,
 			server.NewGinEngine,
 			server.CreateHTTPServer,
-			server.CreateGRPCServer,
-			//db
-			migrate.NewRunner, // migration runner
-			migrate.NewSeeder, // seeder for initial data
-			sqlc.New,
-			//cache
-			cache.NewClient,
-			cache.NewCacheStore,
-			//controller
-			productController.NewAdminProduct,
-			websiteController.NewAdminWebsite,
-			categoryController.NewAdminCategory,
-			productController.NewGRPC,
-			configsController.NewAdminConfig,
-			//service
-			productService.New,
-			websiteService.New,
-			categoryService.New,
-			configsService.New,
-			// dispatcher
-			dispatcher.New,
-			poller.New,
 		),
 		fx.Invoke(
-			// dispatcher
-			dispatcher.RegisterServices,
-			dispatcher.RegisterLifecycle,
-
-			// poller
-			poller.RegisterLifecycle,
-
-			//server
+			apikey.RegisterReloader,
+			siteconfig.RegisterReloader,
 			server.RegisterRoutes,
 			server.StartHTTPServer,
-			server.StartGRPCServer,
-			//migration
-			migrate.RunMigrations,
-			migrate.RunSeeder,
-			//life cycle
 			logger.RegisterLoggerLifecycle,
-			server.GRPCLifeCycle,
 		),
 	)
 }
 
-func NewApp() *fx.App {
-	return fx.New(AppOptions())
+// NewApp builds the application. The stop timeout is longer than the
+// request limit, so running requests can finish while the instance drains.
+func NewApp(extra ...fx.Option) *fx.App {
+	opts := []fx.Option{
+		AppOptions(),
+		fx.StopTimeout(config.MaxRequestDurationFromEnv() + 30*time.Second),
+	}
+	return fx.New(append(opts, extra...)...)
 }

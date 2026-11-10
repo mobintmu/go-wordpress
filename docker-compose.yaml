@@ -1,24 +1,45 @@
+# Product extraction service. No database, no Redis.
+#
+#   1. Create secrets/.env.apikeys with the apikey command (see README).
+#   2. export APP_API_KEY_PEPPER=...   (the same pepper used to hash the keys)
+#   3. docker compose up --build
+#
+# SonarQube is optional: docker compose --profile tools up sonar
 services:
-  redis:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis-data:/data
-    restart: unless-stopped
-  postgres:
-    image: postgres:latest
+  extractor:
+    build: .
+    image: go-wordpress-extractor:latest
     environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=pass
-      - POSTGRES_DB=database
+      APP_ENV: production
+      APP_HTTP_PORT: "4000"
+      APP_SITE_CONFIG_DIR: /app/configs
+      APP_API_KEYS_FILE: /app/secrets/.env.apikeys
+      APP_API_KEY_PEPPER: ${APP_API_KEY_PEPPER:?set APP_API_KEY_PEPPER to the server pepper}
+      APP_OPS_USER: ${APP_OPS_USER:-}
+      APP_OPS_PASSWORD_HASH: ${APP_OPS_PASSWORD_HASH:-}
+      APP_TLS_CERT_FILE: ${APP_TLS_CERT_FILE:-}
+      APP_TLS_KEY_FILE: ${APP_TLS_KEY_FILE:-}
+      APP_MAX_REQUEST_DURATION: ${APP_MAX_REQUEST_DURATION:-3m}
+      APP_SITE_WAIT_TIMEOUT: ${APP_SITE_WAIT_TIMEOUT:-30s}
+      APP_MAX_CONCURRENT_REQUESTS: ${APP_MAX_CONCURRENT_REQUESTS:-20}
+      APP_MAX_CONCURRENT_PER_SITE: ${APP_MAX_CONCURRENT_PER_SITE:-1}
+    # The key file is mounted, not passed with --env-file: environment
+    # variables are fixed at start, so a revoked key would stay valid.
+    # The service re-reads both mounts every 30 seconds.
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - ./configs:/app/configs:ro
+      - ./secrets:/app/secrets:ro
+    # The key file has permission 0600, so run as its owner.
+    user: "${APP_UID:-1000}:${APP_GID:-1000}"
     ports:
-      - "5432:5432"
+      - "4000:4000"
+    # Longer than APP_MAX_REQUEST_DURATION, so running requests can finish.
+    stop_grace_period: 190s
     restart: unless-stopped
+
   sonar:
-    image: sonarqube:latest  
+    image: sonarqube:latest
+    profiles: ["tools"]
     ports:
       - "9000:9000"
     volumes:
@@ -34,8 +55,6 @@ services:
           memory: 2g
 
 volumes:
-  redis-data:
-  postgres-data:
   sonar-data:
   sonar-logs:
   sonar-extensions:

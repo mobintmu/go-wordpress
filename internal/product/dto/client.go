@@ -1,5 +1,0 @@
-package dto
-
-import "go-wordpress/internal/storage/sql/sqlc"
-
-type ProductsResponse []sqlc.Product

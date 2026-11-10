@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "site_id": "hosseinibrothers",
+  "version": "2026-11-11.1",
+  "enabled": true,
+  "extends": "prestashop",
+  "domains": ["hosseinibrothers.ir", "www.hosseinibrothers.ir"],
+
+  "pages": {
+    "product": {
+      "fields": {
+        "title": { "selector": "h1[itemprop='name'], h1.product_name", "pick": "first" },
+        "description": {
+          "selector": "div.stsb_pro_summary p, div.stsb_read_more_box p",
+          "pick": "join",
+          "separator": "\n"
+        }
+      }
+    }
+  }
+}

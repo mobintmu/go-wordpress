@@ -1,117 +1,130 @@
-# go-wordpress
+# go-wordpress: product extraction service
 
-The **go-wordpress** project is a dynamic, open-source **Golang** 💻 repository that serves as a modern **blueprint** for building **scalable, clean, and production-ready web services** 🚀. It showcases best practices in architecture by strictly adhering to **Clean Architecture** 🏗️ and **domain-centric modularity**, organizing code into distinct layers (controllers, services, and repositories) to ensure the application is highly **maintainable** ✅ and easily **testable** 🧪 as it grows.
+A stateless HTTP service that extracts one product from one product page. A client application sends a product URL with an API key. The service finds that site's parsing rules in a JSON file, fetches the page, and returns either the product or a structured root cause with evidence, in the same response.
 
----
+There is no database and no Redis. Site configs and API keys are files that are re-read every 30 seconds. The design is in [md/SYNC_EXTRACTION_PROPOSAL.md](md/SYNC_EXTRACTION_PROPOSAL.md).
 
-### ✨ Key Architectural Features
-
-* **Dependency Management:** Uses **Uber FX** ✨ for robust dependency injection and graceful application lifecycle management.
-* **Web Framework:** Leverages the **Gin** framework 🌐 for a high-performance HTTP layer.
-* **Data Access:** Utilizes **SQLC** 💾 for type-safe interaction with the database.
-* **Performance:** Integrates a **Redis-backed cache layer** 🧠 for speed and efficiency.
-* **Communication:** Includes a **gRPC server** ⚡ to demonstrate high-performance microservice communication.
-* **Core Module:** Features a fully functional **Product Management Module** 📦 with complete **CRUD** (Create, Read, Update, Delete) functionality.
-
-## Colly
-
-https://go-colly.org/
-
-## Run project
-
-go run cmd/server/main.go
-
-## Swagger address
-
-http://127.0.0.1:4000/swagger/index.html#/
-
-## Generate Swagger Documentation
-
-swag init --parseDependency --parseInternal -g cmd/server/main.go
-
-
-## Run docker compose
-
-docker compose up -d
-
-## SQLC Generator
-
-```
-sqlc generate
+```text
+POST /api/v1/extract   X-API-Key        {"url": "...", "request_id": "..."}
+GET  /health, /ready   public
+GET  /swagger/*, /openapi.yaml, /metrics   operator credentials (HTTP Basic); off unless configured
 ```
 
-## Run tests
+## Layout
 
-```
-go test ./test/server_test.go
-
-```
-
-## Run Sonar
-
-```
-docker run --name sonarqube \
-  -p 9000:9000 \
-  sonarqube:latest
-
-
-go test -coverpkg=./... -coverprofile=coverage.out ./test
-go test -v ./test | grep FAIL
-go test ./... -json > report.json
-go tool cover -func=coverage.out
-```
-
-
-
-## Add sonar test
-
-```
-sonar-scanner \
-  -Dsonar.projectKey=go-wordpress \
-  -Dsonar.sources=. \
-  -Dsonar.host.url=http://127.0.0.1:9000 \
-  -Dsonar.token=sqp_XXXX
+```text
+api/openapi.yaml        Hand-written OpenAPI 3.0.3 contract, embedded in the binary
+cmd/server              HTTP service
+cmd/apikey              Key generation (single and bulk), listing, revocation
+cmd/sitectl             Site config validation, live checks, fixtures
+configs/                schema/, templates/ (woocommerce, woodmart, prestashop), sites/
+internal/apikey         Key format, HMAC hashing, .env and JSON key files, reload, middleware
+internal/siteconfig     Loader, template merge, validation, registry with hot reload
+internal/extract        Pipeline (config, fetch, page_check, extract, normalize, validate) and handler
+internal/fetch          Colly setup, SSRF-safe dialer, retries, redirects, size limit
+internal/normalize      Digits, prices (ranges, rial to toman), text, URLs
+internal/diagnose       Failure codes, page checks, selector trace, HTML samples
+internal/limiter        Per-instance and per-site concurrency, per-site request spacing
+internal/metrics        Prometheus text metrics
+testdata/sites/         Saved HTML and expected output per site
+test/e2e/               End-to-end tests against the real server and a fake shop
 ```
 
-```
-export SONAR_HOST_URL=http://your-sonarqube-server.com
-export SONAR_TOKEN=your-sonar-token-here
-```
+## Run locally
 
+```bash
+# 1. Create a development key (the pepper comes from .env.development)
+set -a; . ./.env.development; set +a
+go run ./cmd/apikey generate --name local-dev     # prints the key once
 
+# 2. Start the service
+go run ./cmd/server
 
-## Run project
-
-```
-docker compose up
-go run cmd/server/main.go
-```
-
-
-## Generate Proto
-
-```
-protoc -I.   --go_out=. --go_opt=paths=source_relative   --go-grpc_out=. --go-grpc_opt=paths=source_relative   --grpc-gateway_out=. --grpc-gateway_opt=paths=source_relative   api/proto/product/v1/product.proto
+# 3. Call it
+curl --max-time 190 -X POST http://127.0.0.1:4000/api/v1/extract \
+  -H "X-API-Key: gwp_..." -H 'Content-Type: application/json' \
+  -d '{"url": "https://badomjip.com/product/example/"}'
 ```
 
+Both extraction outcomes return HTTP 200. Always read the `status` field. Only `HTTP_NOT_FOUND` means the product is gone.
 
-## Install GRPC-Gateway
+## API keys
 
+Keys look like `gwp_<id>_<secret>`. Only an HMAC-SHA-256 of each key, keyed with `APP_API_KEY_PEPPER`, is stored. Files ending in `.json` are read as JSON; anything else is read as `.env` (production default: `secrets/.env.apikeys`).
+
+```bash
+apikey generate-pepper                                   # once; set it on every instance
+apikey generate --name catalog-service --expires-in 8760h
+apikey generate-bulk --count 100 --name-prefix app --plain-output /secure/app-keys.csv
+apikey generate-bulk --names-file clients.txt --plain-output /secure/client-keys.csv
+apikey list
+apikey revoke --id k7f3a9c2
+apikey revoke --name-prefix app
+echo 'operator password' | apikey hash-ops-password     # value for APP_OPS_PASSWORD_HASH
 ```
-go get google.golang.org/grpc
-go get -tool github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway
-go get -tool github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
-go get -tool google.golang.org/protobuf/cmd/protoc-gen-go
-go get -tool google.golang.org/grpc/cmd/protoc-gen-go-grpc
+
+- With `--plain-output`, full keys go only to that CSV (permission 0600, never overwritten), not to stdout.
+- A bulk run is all or nothing: if the key file cannot be updated, the CSV is deleted.
+- Copy the key file to every instance. Each instance logs the key count and file checksum on every reload; compare checksums across instances.
+- A bad key file stops startup; during a reload it is rejected and the previous keys stay active.
+
+## Site configs
+
+One file per site in `configs/sites/`, usually extending a template in `configs/templates/`. Objects merge deeply; a site's arrays replace the template's.
+
+```bash
+go run ./cmd/sitectl validate                          # schema and references
+go run ./cmd/sitectl check --url <product url>         # live extraction with full diagnostics
+go run ./cmd/sitectl fixture --url <product url> --name product-sale   # save HTML + expected output
+go run ./cmd/sitectl test                              # run all fixtures offline
+go run ./cmd/sitectl coverage                          # sites, status, version, template, fixtures
 ```
 
+Every command accepts `--json`. Every enabled site needs at least one fixture; `sitectl test` fails otherwise.
 
-## Build docker file
+The two fixture sets in `testdata/sites/` were written by hand from typical WoodMart and PrestaShop markup. Replace them with real pages using `sitectl fixture` before relying on the selectors.
 
+## Environment variables
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `APP_ENV` | none | `development`, `test`, or `production` |
+| `APP_HTTP_PORT` | `4000` | Listen port |
+| `APP_HTTP_ADDRESS` | all interfaces | Listen address |
+| `APP_SITE_CONFIG_DIR` | `configs` | Config root |
+| `APP_API_KEYS_FILE` | `secrets/.env.apikeys` in production, otherwise `secrets/api_keys.json` | Key file |
+| `APP_API_KEY_PEPPER` | none, required (32+ chars) | HMAC secret |
+| `APP_OPS_USER`, `APP_OPS_PASSWORD_HASH` | none | Operator credentials; operator endpoints return 404 when unset |
+| `APP_TLS_CERT_FILE`, `APP_TLS_KEY_FILE` | none | Serve HTTPS directly |
+| `APP_MAX_REQUEST_DURATION` | `3m` | Hard limit per request |
+| `APP_SITE_WAIT_TIMEOUT` | `30s` | Wait for a busy site's turn before 429 |
+| `APP_MAX_CONCURRENT_REQUESTS` | `20` | Per-instance capacity |
+| `APP_MAX_CONCURRENT_PER_SITE` | `1` | Per-site capacity |
+| `APP_RELOAD_INTERVAL` | `30s` | How often config and key files are checked |
+
+## Tests
+
+```bash
+go test ./...                       # unit, fixture, contract, and end-to-end tests
+go test -race ./test/e2e/           # end-to-end only
+go test -coverpkg=./internal/... -coverprofile=coverage.out ./... && go tool cover -func=coverage.out
 ```
-docker build -t go-wordpress:latest .
-docker run -p 4000:4000 go-wordpress:latest
 
-docker run -p 4000:4000 --env-file .env go-wordpress:latest
+The end-to-end suite starts the real Fx application on a free port with temporary config and key files, and points it at a local fake shop. A test resolver maps hostnames such as `shop.test` to that shop, so redirects, SSRF checks, TLS errors, and DNS failures are all exercised without the internet. It covers every failure code, every price state, request validation, authentication, capacity and per-site limits, per-site delay, cancellation, deadlines, draining, operator endpoints, HTTPS, hot reload of keys and sites, and the `apikey` CLI. Every response in the suite is validated against `api/openapi.yaml`, and properties missing from the contract fail the test.
 
+## Docker
+
+```bash
+export APP_API_KEY_PEPPER=...            # the pepper used to hash secrets/.env.apikeys
+docker compose up --build                 # service on :4000; configs/ and secrets/ are mounted read-only
+docker compose --profile tools up sonar   # optional SonarQube
+```
+
+The key file is mounted rather than passed with `--env-file`, so revocations apply without a restart. `stop_grace_period` is 190s so running requests can finish.
+
+## Sonar
+
+```bash
+go test -coverprofile=coverage.out -coverpkg=./internal/... ./...
+sonar-scanner -Dsonar.host.url=http://localhost:9000 -Dsonar.token=<token>
 ```
