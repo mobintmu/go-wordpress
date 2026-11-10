@@ -51,8 +51,16 @@ func TestRepositoryConfigsAreValid(t *testing.T) {
 		t.Errorf("match patterns wrong")
 	}
 	h := snap.Lookup("hosseinibrothers.ir").Site
-	if !h.MatchesProductPath("/tea/215-black-tea.html") || h.MatchesProductPath("/12-tea") {
-		t.Errorf("prestashop match patterns wrong")
+	for path, want := range map[string]bool{
+		"/کشمش/کشمش-پلویی-آفتابی":   true,  // product: /<category>/<product>
+		"/آجیل/بادام/بادام-درختی/":  false, // category: trailing slash
+		"/content/about-us.html":    false, // info page
+		"/1059-large_default/x.jpg": false, // image
+		"/contact-us":               false, // single segment
+	} {
+		if got := h.MatchesProductPath(path); got != want {
+			t.Errorf("hosseinibrothers MatchesProductPath(%q) = %v, want %v", path, got, want)
+		}
 	}
 }
 
