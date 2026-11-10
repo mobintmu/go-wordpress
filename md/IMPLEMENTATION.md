@@ -71,7 +71,7 @@ Only part of this flow is connected today. See the next section.
 
 | Concern | Library | Version |
 |---|---|---|
-| Language | Go | 1.25 |
+| Language | Go | 1.27 |
 | Dependency injection and lifecycle | `go.uber.org/fx` | 1.24.0 |
 | HTTP | `gin-gonic/gin`, `gin-contrib/timeout` | 1.10.1, 1.1.0 |
 | RPC | `google.golang.org/grpc`, protobuf | 1.76.0, 1.36.10 |
