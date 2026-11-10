@@ -1,6 +1,6 @@
 // Package e2e starts the real service (Fx app, HTTP server, files on disk)
 // against a fake shop and checks every scenario over HTTP. Every response
-// is also validated against api/openapi.yaml.
+// is also validated against the Swagger doc generated into docs/.
 package e2e
 
 import (

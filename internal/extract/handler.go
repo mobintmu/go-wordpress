@@ -41,9 +41,9 @@ const (
 
 // APIError is the body of 400, 401, 429, and 503 responses.
 type APIError struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
-}
+	Code    string `json:"code" binding:"required" example:"INVALID_URL"`
+	Message string `json:"message" binding:"required" example:"The url must be an absolute http or https URL."`
+} //@name ApiError
 
 // Handler serves POST /api/v1/extract.
 type Handler struct {
@@ -66,7 +66,24 @@ func (h *Handler) reject(c *gin.Context, status int, code, msg, reason string) {
 	c.AbortWithStatusJSON(status, APIError{Code: code, Message: msg})
 }
 
-// Handle runs one extraction.
+// Handle godoc
+//
+//	@Summary		Extract one product from a product page
+//	@Description	Fetches one product page and returns the product (status success) or the root cause with evidence (status failed).
+//	@Description	Both results return HTTP 200, so clients must read the status field. Only error.code HTTP_NOT_FOUND means the product is gone.
+//	@Description	Each request responds within APP_MAX_REQUEST_DURATION (3 minutes); set the client timeout to 190 seconds.
+//	@Tags			Extraction
+//	@Accept			json
+//	@Produce		json
+//	@Security		ApiKeyAuth
+//	@Param			request	body		Request		true	"One product page URL"
+//	@Success		200		{object}	Response	"Processing ran. Read the status field for the result."
+//	@Failure		400		{object}	APIError	"INVALID_REQUEST: body is not valid JSON, exceeds 1 MiB, or url is missing. INVALID_URL: url is malformed or not http/https."
+//	@Failure		401		{object}	APIError	"UNAUTHORIZED: the API key is missing, unknown, revoked, or expired."
+//	@Failure		429		{object}	APIError	"TOO_MANY_REQUESTS: no capacity, or the site already has a running extraction."
+//	@Header			429		{integer}	Retry-After	"Seconds to wait before retrying."
+//	@Failure		503		{object}	APIError	"SHUTTING_DOWN: this instance is draining."
+//	@Router			/api/v1/extract [post]
 func (h *Handler) Handle(c *gin.Context) {
 	if h.drain.Draining() {
 		h.reject(c, http.StatusServiceUnavailable, CodeShuttingDown, "This instance is shutting down.", "shutting_down")

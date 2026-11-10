@@ -1,9 +1,13 @@
 # Product extraction service. No database, no Redis.
 #
-#   1. Create secrets/.env.apikeys with the apikey command (see README).
-#   2. export APP_API_KEY_PEPPER=...   (the same pepper used to hash the keys)
-#   3. docker compose up --build
+# First run:
+#   1. mkdir -p secrets                     (owned by you, not by root)
+#   2. Put APP_API_KEY_PEPPER in .env       (create one with: docker compose run --rm apikey generate-pepper)
+#   3. docker compose run --rm apikey generate --name my-client
+#                                           (prints the key once; writes secrets/.env.apikeys)
+#   4. docker compose up --build
 #
+# Other key commands: list, revoke --id <id>, generate-bulk --count 10 --name-prefix app --plain-output /app/secrets/keys.csv
 # SonarQube is optional: docker compose --profile tools up sonar
 services:
   extractor:
@@ -28,7 +32,14 @@ services:
     # The service re-reads both mounts every 30 seconds.
     volumes:
       - ./configs:/app/configs:ro
-      - ./secrets:/app/secrets:ro
+      # create_host_path: false stops Docker from creating a root-owned
+      # ./secrets folder; compose fails clearly if it is missing.
+      - type: bind
+        source: ./secrets
+        target: /app/secrets
+        read_only: true
+        bind:
+          create_host_path: false
     # The key file has permission 0600, so run as its owner.
     user: "${APP_UID:-1000}:${APP_GID:-1000}"
     ports:
@@ -36,6 +47,25 @@ services:
     # Longer than APP_MAX_REQUEST_DURATION, so running requests can finish.
     stop_grace_period: 190s
     restart: unless-stopped
+
+  # Key management with the same image: docker compose run --rm apikey <command>
+  # It mounts ./secrets writable, so it can create and update the key file.
+  apikey:
+    image: go-wordpress-extractor:latest
+    build: .
+    profiles: ["tools"]
+    entrypoint: ["apikey"]
+    environment:
+      APP_ENV: production
+      APP_API_KEYS_FILE: /app/secrets/.env.apikeys
+      APP_API_KEY_PEPPER: ${APP_API_KEY_PEPPER:-}
+    volumes:
+      - type: bind
+        source: ./secrets
+        target: /app/secrets
+        bind:
+          create_host_path: false
+    user: "${APP_UID:-1000}:${APP_GID:-1000}"
 
   sonar:
     image: sonarqube:latest

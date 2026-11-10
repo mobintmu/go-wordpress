@@ -116,7 +116,7 @@ func (cfg *Config) IsProduction() bool  { return cfg.ENV == "production" }
 // TLSEnabled reports whether the server terminates HTTPS itself.
 func (cfg *Config) TLSEnabled() bool { return cfg.TLSCertFile != "" && cfg.TLSKeyFile != "" }
 
-// OpsEnabled reports whether Swagger UI, /openapi.yaml and /metrics are served.
+// OpsEnabled reports whether Swagger UI (/swagger/*) and /metrics are served.
 func (cfg *Config) OpsEnabled() bool { return cfg.OpsUser != "" && cfg.OpsPasswordHash != "" }
 
 // ShutdownTimeout is how long running requests may take to finish on stop.

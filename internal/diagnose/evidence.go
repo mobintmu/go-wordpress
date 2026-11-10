@@ -11,34 +11,38 @@ const MaxSampleBytes = 16 * 1024
 
 // Evidence describes what the service saw. Every field is optional.
 type Evidence struct {
-	FailedURL       string            `json:"failed_url,omitempty"`
-	FinalURL        string            `json:"final_url,omitempty"`
-	Redirects       []string          `json:"redirects"`
-	HTTPStatus      int               `json:"http_status,omitempty"`
-	Attempts        int               `json:"attempts,omitempty"`
-	ContentType     string            `json:"content_type,omitempty"`
-	BodyBytes       int64             `json:"body_bytes,omitempty"`
-	BodySHA256      string            `json:"body_sha256,omitempty"`
-	PageTitle       string            `json:"page_title,omitempty"`
+	FailedURL   string   `json:"failed_url,omitempty" format:"uri" example:"https://badomjip.com/product/example/"`
+	FinalURL    string   `json:"final_url,omitempty" format:"uri" example:"https://badomjip.com/product/example/"`
+	Redirects   []string `json:"redirects"`
+	HTTPStatus  int      `json:"http_status,omitempty" example:"200"`
+	Attempts    int      `json:"attempts,omitempty" example:"1"`
+	ContentType string   `json:"content_type,omitempty" example:"text/html; charset=UTF-8"`
+	BodyBytes   int64    `json:"body_bytes,omitempty" example:"184233"`
+	BodySHA256  string   `json:"body_sha256,omitempty" example:"9f2c0d7ab1"`
+	PageTitle   string   `json:"page_title,omitempty" example:"Example product - Badomjip"`
+	// Allow-listed headers only: server, content-type, retry-after, cf-ray, cf-mitigated, location. Never Set-Cookie.
 	ResponseHeaders map[string]string `json:"response_headers,omitempty"`
-	SelectorTrace   []TraceStep       `json:"selector_trace,omitempty"`
-	HTMLSample      *HTMLSample       `json:"html_sample,omitempty"`
-	FieldSamples    map[string]string `json:"field_samples,omitempty"`
-}
+	// Match count for each step of the failing selector path.
+	SelectorTrace []TraceStep `json:"selector_trace,omitempty"`
+	HTMLSample    *HTMLSample `json:"html_sample,omitempty"`
+	// Raw text found for each field.
+	FieldSamples map[string]string `json:"field_samples,omitempty"`
+} //@name Evidence
 
 // TraceStep is the match count for one prefix of a selector path.
 type TraceStep struct {
-	Selector string `json:"selector"`
-	Matches  int    `json:"matches"`
-}
+	Selector string `json:"selector" binding:"required" example:"div.main-page-wrapper"`
+	Matches  int    `json:"matches" binding:"required" example:"1"`
+} //@name SelectorTraceStep
 
 // HTMLSample is a bounded piece of untrusted third-party HTML.
 type HTMLSample struct {
-	Reason         string `json:"reason"`
-	Content        string `json:"content"`
-	Truncated      bool   `json:"truncated"`
-	OriginalLength int    `json:"original_length,omitempty"`
-}
+	Reason string `json:"reason" binding:"required" example:"Deepest element matched by the failing selector path"`
+	// Untrusted third-party HTML. Escape before displaying.
+	Content        string `json:"content" binding:"required" example:"<div class=\"site-content\">...</div>"`
+	Truncated      bool   `json:"truncated" binding:"required" example:"true"`
+	OriginalLength int    `json:"original_length,omitempty" example:"48211"`
+} //@name HtmlSample
 
 // Sample reasons.
 const (

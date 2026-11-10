@@ -105,15 +105,21 @@ var codes = map[string]codeInfo{
 
 // Failure is the error part of a failed result.
 type Failure struct {
-	Code            string `json:"code"`
-	Stage           Stage  `json:"stage"`
-	Owner           Owner  `json:"owner"`
-	Retryable       bool   `json:"retryable"`
-	Confidence      string `json:"confidence"`
-	Message         string `json:"message"`
-	RootCause       string `json:"root_cause"`
-	SuggestedAction string `json:"suggested_action,omitempty"`
-}
+	// Failure code. New codes can be added over time, so treat unknown codes like INTERNAL_ERROR.
+	// Known codes: SITE_NOT_CONFIGURED, SITE_DISABLED, CONFIG_INVALID, NOT_PRODUCT_URL, URL_NOT_ALLOWED,
+	// DNS_FAILED, CONNECTION_FAILED, TLS_FAILED, FETCH_TIMEOUT, HTTP_NOT_FOUND, ACCESS_DENIED, RATE_LIMITED,
+	// SOURCE_SERVER_ERROR, HTTP_ERROR, ROBOTS_DISALLOWED, REDIRECT_NOT_ALLOWED, TOO_MANY_REDIRECTS,
+	// UNSUPPORTED_CONTENT, RESPONSE_TOO_LARGE, BOT_PROTECTION, JS_RENDERED_PAGE, EMPTY_PAGE, SELECTOR_NOT_FOUND,
+	// REQUIRED_FIELD_MISSING, PRICE_PARSE_FAILED, DEADLINE_EXCEEDED, INTERNAL_ERROR.
+	Code            string `json:"code" binding:"required" example:"SELECTOR_NOT_FOUND"`
+	Stage           Stage  `json:"stage" binding:"required" enums:"config,fetch,page_check,extract,normalize,validate" swaggertype:"string" example:"extract"`
+	Owner           Owner  `json:"owner" binding:"required" enums:"client,site_config,source_site,service" swaggertype:"string" example:"site_config"`
+	Retryable       bool   `json:"retryable" binding:"required" example:"false"`
+	Confidence      string `json:"confidence" binding:"required" enums:"high,medium" example:"high"`
+	Message         string `json:"message" binding:"required" example:"The product block was not found on the page."`
+	RootCause       string `json:"root_cause" binding:"required" example:"The page returned HTTP 200 with real content, but selector 'div.product.type-product' matched 0 elements. The site markup has probably changed."`
+	SuggestedAction string `json:"suggested_action,omitempty" example:"Update pages.product.root in configs/sites/badomjip.com.json."`
+} //@name ExtractError
 
 func (f *Failure) Error() string { return f.Code + ": " + f.RootCause }
 

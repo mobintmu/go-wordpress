@@ -5,7 +5,7 @@ import (
 	"crypto/subtle"
 	"net/http"
 
-	"go-wordpress/api"
+	"go-wordpress/docs"
 	"go-wordpress/internal/apikey"
 	"go-wordpress/internal/config"
 	"go-wordpress/internal/extract"
@@ -19,9 +19,13 @@ import (
 
 // RegisterRoutes wires every endpoint:
 //
-//	POST /api/v1/extract                      API key in X-API-Key
-//	GET  /health, /ready                      public
-//	GET  /swagger/*, /openapi.yaml, /metrics  operator credentials (Basic)
+//	POST /api/v1/extract      API key in X-API-Key
+//	GET  /health, /ready      public
+//	GET  /swagger/*, /metrics operator credentials (Basic)
+//
+// Swagger docs are generated from the annotations with:
+//
+//	swag init --parseInternal -g cmd/server/main.go -o docs
 func RegisterRoutes(engine *gin.Engine, h *health.Health, ex *extract.Handler, keys *apikey.Store, m *metrics.Metrics, cfg *config.Config) {
 	engine.GET("/health", h.Handle)
 	engine.GET("/ready", h.Ready)
@@ -29,25 +33,43 @@ func RegisterRoutes(engine *gin.Engine, h *health.Health, ex *extract.Handler, k
 	v1 := engine.Group("/api/v1")
 	v1.POST("/extract", apikey.Middleware(keys, func() { m.Reject("unauthorized") }), ex.Handle)
 
+	// Swagger UI and its doc.json are served at /swagger/index.html and
+	// /swagger/doc.json. Host is left empty so the UI calls the server it
+	// was loaded from.
+	docs.SwaggerInfo.Host = ""
+	docs.SwaggerInfo.BasePath = "/"
+	docs.SwaggerInfo.Schemes = []string{"http"}
+	if cfg.TLSEnabled() {
+		docs.SwaggerInfo.Schemes = []string{"https"}
+	}
 	ops := engine.Group("/", OpsAuth(cfg))
-	ops.GET("/openapi.yaml", func(c *gin.Context) {
-		c.Data(http.StatusOK, "application/yaml; charset=utf-8", api.OpenAPI)
-	})
-	ops.GET("/metrics", func(c *gin.Context) {
-		c.Header("Content-Type", "text/plain; version=0.0.4; charset=utf-8")
-		c.Status(http.StatusOK)
-		m.Write(c.Writer)
-	})
-	ops.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.URL("/openapi.yaml")))
+	ops.GET("/metrics", MetricsHandler(m))
+	ops.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	engine.NoRoute(notFound)
 }
 
+// MetricsHandler godoc
+//
+//	@Summary		Prometheus metrics
+//	@Description	Requests by outcome, site, failure code, and price state; duration; active requests; rejections.
+//	@Tags			Operations
+//	@Produce		plain
+//	@Security		OpsBasicAuth
+//	@Success		200	{string}	string				"Metrics in the Prometheus text format"
+//	@Failure		401	{object}	extract.APIError	"UNAUTHORIZED: operator credentials are missing or wrong."
+//	@Failure		404	{object}	extract.APIError	"NOT_FOUND: operator endpoints are off."
+//	@Router			/metrics [get]
+func MetricsHandler(m *metrics.Metrics) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Header("Content-Type", "text/plain; version=0.0.4; charset=utf-8")
+		c.Status(http.StatusOK)
+		m.Write(c.Writer)
+	}
+}
+
 func notFound(c *gin.Context) {
-	c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
-		"code":    "NOT_FOUND",
-		"message": "The requested endpoint does not exist.",
-	})
+	c.AbortWithStatusJSON(http.StatusNotFound, extract.APIError{Code: "NOT_FOUND", Message: "The requested endpoint does not exist."})
 }
 
 // OpsAuth protects operational endpoints with HTTP Basic authentication.
@@ -67,7 +89,7 @@ func OpsAuth(cfg *config.Config) gin.HandlerFunc {
 		passOK := apikey.HashEqual(cfg.APIKeyPepper, pass, cfg.OpsPasswordHash)
 		if !ok || !userOK || !passOK {
 			c.Header("WWW-Authenticate", `Basic realm="operations", charset="UTF-8"`)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"code": "UNAUTHORIZED", "message": "Operator credentials are required."})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, extract.APIError{Code: "UNAUTHORIZED", Message: "Operator credentials are required."})
 			return
 		}
 		c.Next()

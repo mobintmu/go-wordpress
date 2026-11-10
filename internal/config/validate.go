@@ -74,7 +74,8 @@ func validateAPIKeysFile(cfg *Config) error {
 		return fmt.Errorf("API_KEYS_FILE is empty. Set APP_API_KEYS_FILE")
 	}
 	if _, err := os.Stat(cfg.APIKeysFile); err != nil {
-		return fmt.Errorf("API_KEYS_FILE %q cannot be read: %w. Create it with: apikey generate --name <client>", cfg.APIKeysFile, err)
+		return fmt.Errorf("API_KEYS_FILE %q cannot be read: %w. Create it with: apikey generate --name <client> "+
+			"(with Docker Compose: docker compose run --rm apikey generate --name <client>)", cfg.APIKeysFile, err)
 	}
 	return nil
 }
@@ -126,7 +127,7 @@ func validateConcurrency(cfg *Config) error {
 
 func validateWarnings(cfg *Config) {
 	if (cfg.OpsUser == "") != (cfg.OpsPasswordHash == "") {
-		log.Printf("⚠️  WARNING: set both APP_OPS_USER and APP_OPS_PASSWORD_HASH. Swagger UI, /openapi.yaml and /metrics stay off")
+		log.Printf("⚠️  WARNING: set both APP_OPS_USER and APP_OPS_PASSWORD_HASH. Swagger UI and /metrics stay off")
 	}
 	if cfg.IsProduction() && !cfg.TLSEnabled() {
 		log.Printf("⚠️  WARNING: serving plain HTTP in production. API keys travel in a header; use this only on a private network")

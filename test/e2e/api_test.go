@@ -214,7 +214,7 @@ func opsAuthHeader() string {
 func TestOperatorEndpoints(t *testing.T) {
 	t.Run("off by default", func(t *testing.T) {
 		e := Start(t, Options{})
-		for _, p := range []string{"/openapi.yaml", "/metrics", "/swagger/index.html"} {
+		for _, p := range []string{"/swagger/doc.json", "/metrics", "/swagger/index.html"} {
 			if r := e.Get(p, map[string]string{"Authorization": opsAuthHeader()}); r.Status != 404 {
 				t.Errorf("%s: want 404 when operator credentials are unset, got %d", p, r.Status)
 			}
@@ -232,7 +232,7 @@ func TestOperatorEndpoints(t *testing.T) {
 		"wrong user":     {"Authorization": "Basic " + base64.StdEncoding.EncodeToString([]byte("root:"+opsPassword))},
 		"client api key": {apikey.HeaderName: e.Key},
 	}
-	for _, p := range []string{"/openapi.yaml", "/metrics", "/swagger/index.html"} {
+	for _, p := range []string{"/swagger/doc.json", "/metrics", "/swagger/index.html"} {
 		for name, h := range bad {
 			t.Run(p+" "+name, func(t *testing.T) {
 				r := e.Get(p, h)
@@ -250,8 +250,8 @@ func TestOperatorEndpoints(t *testing.T) {
 			t.Errorf("swagger ui: %d", r.Status)
 		}
 		init := e.Get("/swagger/swagger-initializer.js", auth)
-		if !strings.Contains(string(init.Raw), "/openapi.yaml") {
-			t.Errorf("swagger ui does not point at /openapi.yaml: %s", init.Raw)
+		if !strings.Contains(string(init.Raw), "doc.json") {
+			t.Errorf("swagger ui does not load doc.json: %s", init.Raw)
 		}
 	})
 	t.Run("metrics", func(t *testing.T) {
