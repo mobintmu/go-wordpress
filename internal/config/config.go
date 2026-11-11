@@ -132,7 +132,10 @@ func MaxRequestDurationFromEnv() time.Duration {
 }
 
 // LoadEnv loads the first env file found: .env.<APP_ENV>, then .env,
-// in the current directory and then its parent.
+// in the current directory and then its parent. Non-empty variables already
+// in the environment win; variables that are unset or empty are filled from
+// the file. (An empty exported variable, for example left behind by
+// sourcing an older copy of the file, would otherwise hide the file's value.)
 func LoadEnv() {
 	env := os.Getenv("APP_ENV")
 	if env == "" {
@@ -148,11 +151,22 @@ func LoadEnv() {
 	}
 
 	for _, path := range paths {
-		if err := godotenv.Load(path); err == nil {
-			log.Printf("✅ Loaded: %s\n", path)
-			return
+		values, err := godotenv.Read(path)
+		if err != nil {
+			continue
 		}
+		applyEnvFile(values)
+		log.Printf("✅ Loaded: %s\n", path)
+		return
 	}
 
 	log.Printf("⚠️  No .env found\n")
+}
+
+func applyEnvFile(values map[string]string) {
+	for k, v := range values {
+		if os.Getenv(k) == "" {
+			os.Setenv(k, v) //nolint:errcheck
+		}
+	}
 }

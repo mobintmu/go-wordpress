@@ -3,6 +3,7 @@ package server
 import (
 	"crypto/sha256"
 	"crypto/subtle"
+	"log"
 	"net/http"
 
 	"go-wordpress/docs"
@@ -41,6 +42,12 @@ func RegisterRoutes(engine *gin.Engine, h *health.Health, ex *extract.Handler, k
 	docs.SwaggerInfo.Schemes = []string{"http"}
 	if cfg.TLSEnabled() {
 		docs.SwaggerInfo.Schemes = []string{"https"}
+	}
+	if !cfg.OpsEnabled() {
+		log.Printf("ℹ️  Swagger UI and /metrics are off (they return 404). Set APP_OPS_USER and APP_OPS_PASSWORD_HASH to turn them on.")
+	} else {
+		log.Printf("✅ Swagger UI: /swagger/index.html and /metrics (operator login required, user %q, pepper fingerprint %s)",
+			cfg.OpsUser, apikey.PepperFingerprint(cfg.APIKeyPepper))
 	}
 	ops := engine.Group("/", OpsAuth(cfg))
 	ops.GET("/metrics", MetricsHandler(m))
@@ -88,6 +95,15 @@ func OpsAuth(cfg *config.Config) gin.HandlerFunc {
 		userOK := subtle.ConstantTimeCompare(gotUser[:], wantUser[:]) == 1
 		passOK := apikey.HashEqual(cfg.APIKeyPepper, pass, cfg.OpsPasswordHash)
 		if !ok || !userOK || !passOK {
+			switch {
+			case !ok:
+				// No credentials yet: the browser shows its login prompt.
+			case !userOK:
+				log.Printf("operator login failed: unknown user %q", user)
+			default:
+				log.Printf("operator login failed for %q: wrong password, or the hash was made with a different APP_API_KEY_PEPPER (server fingerprint %s)",
+					user, apikey.PepperFingerprint(cfg.APIKeyPepper))
+			}
 			c.Header("WWW-Authenticate", `Basic realm="operations", charset="UTF-8"`)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, extract.APIError{Code: "UNAUTHORIZED", Message: "Operator credentials are required."})
 			return

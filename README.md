@@ -33,9 +33,10 @@ test/e2e/               End-to-end tests against the real server and a fake shop
 ## Run locally
 
 ```bash
-# 1. Create a development key (the pepper comes from .env.development)
-set -a; . ./.env.development; set +a
-go run ./cmd/apikey generate --name local-dev     # prints the key once
+# 1. Create a development key with the pepper from .env.development
+APP_API_KEY_PEPPER=$(grep '^APP_API_KEY_PEPPER=' .env.development | cut -d= -f2-) \
+APP_API_KEYS_FILE=secrets/api_keys.json \
+  go run ./cmd/apikey generate --name local-dev   # prints the key once
 
 # 2. Start the service
 go run ./cmd/server
@@ -49,6 +50,8 @@ curl --max-time 190 -X POST http://127.0.0.1:4000/api/v1/extract \
 Both extraction outcomes return HTTP 200. Always read the `status` field. Only `HTTP_NOT_FOUND` means the product is gone.
 
 ## API keys
+
+Step-by-step setup of every key from scratch (pepper, API keys, operator login, TLS): [md/SETUP_KEYS.md](md/SETUP_KEYS.md).
 
 Keys look like `gwp_<id>_<secret>`. Only an HMAC-SHA-256 of each key, keyed with `APP_API_KEY_PEPPER`, is stored. Files ending in `.json` are read as JSON; anything else is read as `.env` (production default: `secrets/.env.apikeys`).
 
@@ -149,6 +152,16 @@ Regenerate after changing an annotation or an API type. Generate a client from `
 
 ```bash
 openapi-generator-cli generate -i docs/swagger.json -g typescript-axios -o ./extract-client
+```
+
+How set admin for swagger
+
+APP_OPS_USER=admin
+APP_OPS_PASSWORD_HASH=<the hash from step 1>
+
+
+```bash
+echo 'choose-a-long-password' | APP_API_KEY_PEPPER=$(grep '^APP_API_KEY_PEPPER=' .env.development | cut -d= -f2-) go run ./cmd/apikey hash-ops-password
 ```
 
 ## Tests

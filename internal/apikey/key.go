@@ -10,6 +10,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"regexp"
@@ -132,6 +133,14 @@ func Hash(pepper, value string) string {
 	m := hmac.New(sha256.New, []byte(pepper))
 	m.Write([]byte(value))
 	return base64.RawURLEncoding.EncodeToString(m.Sum(nil))
+}
+
+// PepperFingerprint is a short, non-reversible label for a pepper. The
+// server and the apikey command print it, so a pepper mismatch between
+// the machine that made the hashes and the server is easy to spot.
+func PepperFingerprint(pepper string) string {
+	sum := sha256.Sum256([]byte("gwp-pepper-fingerprint:" + pepper))
+	return hex.EncodeToString(sum[:4])
 }
 
 // HashEqual compares the keyed hash of value with stored in constant time.

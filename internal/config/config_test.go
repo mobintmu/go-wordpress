@@ -63,3 +63,14 @@ func TestDefaultsFromEnvironment(t *testing.T) {
 		t.Fatalf("dev key file = %s", cfg.APIKeysFile)
 	}
 }
+
+func TestEnvFileFillsEmptyButKeepsRealValues(t *testing.T) {
+	t.Setenv("APP_OPS_USER", "")          // exported but empty
+	t.Setenv("APP_HTTP_PORT", "5000")     // real value
+	t.Setenv("APP_SITE_WAIT_TIMEOUT", "") // cleared by Setenv, restored after
+	os.Unsetenv("APP_SITE_WAIT_TIMEOUT")
+	applyEnvFile(map[string]string{"APP_OPS_USER": "admin", "APP_HTTP_PORT": "4000", "APP_SITE_WAIT_TIMEOUT": "10s"})
+	if os.Getenv("APP_OPS_USER") != "admin" || os.Getenv("APP_HTTP_PORT") != "5000" || os.Getenv("APP_SITE_WAIT_TIMEOUT") != "10s" {
+		t.Fatalf("got user=%q port=%q wait=%q", os.Getenv("APP_OPS_USER"), os.Getenv("APP_HTTP_PORT"), os.Getenv("APP_SITE_WAIT_TIMEOUT"))
+	}
+}

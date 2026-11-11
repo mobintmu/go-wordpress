@@ -97,6 +97,7 @@ func (c CLI) pepper() (string, error) {
 	if len(p) < config.MinPepperLength {
 		return "", fmt.Errorf("APP_API_KEY_PEPPER is not set or shorter than %d characters; it must match the production pepper", config.MinPepperLength)
 	}
+	fmt.Fprintf(c.Stderr, "pepper fingerprint: %s (must match the server's startup log)\n", PepperFingerprint(p))
 	return p, nil
 }
 

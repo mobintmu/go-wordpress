@@ -75,7 +75,8 @@ func (s *Store) Reload() error {
 	s.log.Info("API keys loaded",
 		zap.String("file", s.path),
 		zap.Int("keys", snap.Count),
-		zap.String("checksum", snap.Checksum))
+		zap.String("checksum", snap.Checksum),
+		zap.String("pepper_fingerprint", PepperFingerprint(s.pepper)))
 	return nil
 }
 
